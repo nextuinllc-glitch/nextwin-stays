@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   ChevronLeft,
   CalendarDays,
@@ -43,8 +44,39 @@ const CLEANING_FEE = 45;
 const CONCIERGE_PHONE = "+212600000000";
 
 export function CheckoutForm({ property, initial }: Props) {
-  const fromDate = useMemo(() => (initial.from ? new Date(initial.from) : null), [initial.from]);
-  const toDate = useMemo(() => (initial.to ? new Date(initial.to) : null), [initial.to]);
+  // Static export: this page is pre-rendered once per property with empty
+  // dates. We hydrate the calendar / guest count from the URL on mount so
+  // a deep-link from the BookingWidget lands here pre-filled. `initial`
+  // is kept as a fallback for non-static contexts (local dev with full
+  // server) but is overridden by URL params whenever present.
+  const searchParams = useSearchParams();
+  const [fromDate, setFromDate] = useState<Date | null>(
+    initial.from ? new Date(initial.from) : null,
+  );
+  const [toDate, setToDate] = useState<Date | null>(
+    initial.to ? new Date(initial.to) : null,
+  );
+  const [guests, setGuests] = useState<number>(initial.guests);
+
+  useEffect(() => {
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+    const guestsParam = searchParams.get("guests");
+    if (fromParam) {
+      const d = new Date(fromParam);
+      if (!Number.isNaN(d.getTime())) setFromDate(d);
+    }
+    if (toParam) {
+      const d = new Date(toParam);
+      if (!Number.isNaN(d.getTime())) setToDate(d);
+    }
+    if (guestsParam) {
+      const n = Number(guestsParam);
+      if (!Number.isNaN(n) && n > 0) setGuests(n);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const nights = nightsBetween(fromDate, toDate);
   const subtotal = property.pricePerNight * Math.max(nights, 0);
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
@@ -76,7 +108,7 @@ export function CheckoutForm({ property, initial }: Props) {
       `🏡 ${property.title}`,
       `📍 ${property.area}, ${property.city}`,
       `📅 ${fmtDate(fromDate)} → ${fmtDate(toDate)}  (${nights} ${nights === 1 ? "nuit" : "nuits"})`,
-      `👥 ${initial.guests} ${initial.guests === 1 ? "invité" : "invités"}`,
+      `👥 ${guests} ${guests === 1 ? "invité" : "invités"}`,
       "",
       `💳 Mode de paiement : ${payment === "bank" ? "Virement bancaire" : "Espèces à l'arrivée"}`,
       `💰 Total : ${formatPrice(total)}  (logement + ménage + service)`,
@@ -316,7 +348,7 @@ export function CheckoutForm({ property, initial }: Props) {
                     Invités
                   </div>
                   <div className="font-medium text-ink">
-                    {initial.guests} {initial.guests === 1 ? "invité" : "invités"}
+                    {guests} {guests === 1 ? "invité" : "invités"}
                   </div>
                 </div>
               </div>

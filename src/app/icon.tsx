@@ -5,6 +5,9 @@ import { ImageResponse } from "next/og";
 // rounded-square frame. Reads as a Moroccan doorway stamp at 32 px.
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
+// Required for `output: 'export'` — bake the icon into a real .png at
+// build time instead of generating it per-request.
+export const dynamic = "force-static";
 
 export default function Icon() {
   return new ImageResponse(

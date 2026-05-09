@@ -41,6 +41,30 @@ export function SearchBar({ variant = "hero", initialFrom = null, initialTo = nu
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  // Static-export build pre-renders this page with empty state. On the
+  // client we sync from `?from=`, `?to=`, `?guests=` so a deep-link
+  // (or a navigation from the home-page hero search) lands with the
+  // calendar / guest picker pre-filled. Runs once per mount; subsequent
+  // user edits are owned by the form.
+  useEffect(() => {
+    const fromParam = params.get("from");
+    const toParam = params.get("to");
+    const guestsParam = params.get("guests");
+    if (fromParam) {
+      const d = new Date(fromParam);
+      if (!Number.isNaN(d.getTime())) setFrom(d);
+    }
+    if (toParam) {
+      const d = new Date(toParam);
+      if (!Number.isNaN(d.getTime())) setTo(d);
+    }
+    if (guestsParam) {
+      const n = Number(guestsParam);
+      if (!Number.isNaN(n) && n > 0) setGuests(n);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Auto-open the date picker when a deep-link from the mobile bottom-nav
   // arrives with `?openDates=1`. We strip the param immediately so a back
   // navigation or refresh doesn't keep popping the modal open.

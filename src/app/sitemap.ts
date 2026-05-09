@@ -2,10 +2,15 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/seo";
 
-// Auto-generated from the DB on each request — published properties only.
+// Auto-generated from the DB at build time — published properties only.
 // Drafts and admin/api routes are excluded so Google doesn't index drafts
-// before the admin sets prices and adds images.
-export const dynamic = "force-dynamic";
+// before the admin sets prices and adds images. Re-run the deploy workflow
+// after publishing a new property to refresh the sitemap.
+//
+// `force-static` is required when Next.js is built with `output: 'export'`
+// — it tells the framework to bake the sitemap into a real .xml file
+// rather than expecting a server to render it per-request.
+export const dynamic = "force-static";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const properties = await prisma.property.findMany({

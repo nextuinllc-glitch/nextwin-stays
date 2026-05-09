@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Suspense } from "react";
 import { SearchBar } from "./SearchBar";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -91,7 +92,13 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
               and cinematic instead of crowded with form fields. */}
           <div className="mt-12 hidden w-full md:block">
             <div className="flex justify-center">
-              <SearchBar variant="hero" />
+              {/* Suspense boundary required because SearchBar reads
+                  useSearchParams() to hydrate dates / guests from URL,
+                  which static-export builds can't pre-render without
+                  it. */}
+              <Suspense>
+                <SearchBar variant="hero" />
+              </Suspense>
             </div>
           </div>
         </div>

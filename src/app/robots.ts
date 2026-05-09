@@ -3,6 +3,9 @@ import { SITE_URL } from "@/lib/seo";
 
 // Crawlers may index everything public, but the admin panel and the API
 // surface are off-limits — they hold draft data and require auth anyway.
+// `force-static` is required when Next.js is built with `output: 'export'`.
+export const dynamic = "force-static";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [

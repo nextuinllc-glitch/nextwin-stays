@@ -5,6 +5,8 @@ import { ImageResponse } from "next/og";
 // in champagne gold beneath the glyph. Terracotta gradient backdrop.
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
+// Required for `output: 'export'` — bake the icon at build time.
+export const dynamic = "force-static";
 
 export default function AppleIcon() {
   return new ImageResponse(

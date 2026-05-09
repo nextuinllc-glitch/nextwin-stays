@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
@@ -12,8 +13,6 @@ import {
   hreflangAlternates,
   propertyJsonLd,
 } from "@/lib/seo";
-
-export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   const slugs = await getAllPropertySlugs();
@@ -98,7 +97,13 @@ export default async function PropertyDetailPage({
         // payload is server-built from our own DB so there's no XSS surface.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }}
       />
-      <PropertyDetailContent property={property} blockedRanges={blockedRanges} />
+      {/* Suspense around the booking widget tree — useSearchParams() is
+          read inside <PropertyDetailContent> to seed the date picker
+          from `?from=&to=` deep links, and static export needs an
+          explicit boundary for that. */}
+      <Suspense>
+        <PropertyDetailContent property={property} blockedRanges={blockedRanges} />
+      </Suspense>
     </>
   );
 }

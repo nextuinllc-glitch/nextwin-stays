@@ -3,8 +3,6 @@ import { getPublishedProperties } from "@/lib/property-repo";
 import { getHeroSettings } from "@/lib/settings-repo";
 import { getPageContent } from "@/lib/page-content-repo";
 
-export const dynamic = "force-dynamic";
-
 export default async function HomePage() {
   // Fetch in parallel — the hero + page content rows are tiny so this
   // adds no waterfall.
