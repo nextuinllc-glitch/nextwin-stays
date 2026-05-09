@@ -1,0 +1,44 @@
+# Render blueprint — provisions the Next.js web service automatically
+# when you connect this repo at https://render.com/blueprints.
+#
+# Environment variables marked `sync: false` are not committed here and
+# must be set once in the Render dashboard (Service → Environment).
+# Everything else (build / start / region / plan) is declared here so a
+# fresh deploy from a clean fork is a one-click operation.
+services:
+  - type: web
+    name: nextwin-stays
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: main
+    autoDeploy: true
+    # Postgres lives at Supabase (eu-west-1, Ireland). DIRECT_URL only
+    # needs a moment for Prisma's first migration apply — runtime queries
+    # all flow through the pooled DATABASE_URL.
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: uploads
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false

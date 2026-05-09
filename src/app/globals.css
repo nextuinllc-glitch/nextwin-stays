@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply bg-cream-50 text-ink;
+  }
+  ::selection {
+    @apply bg-brand-100 text-brand-900;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .container-narrow {
+    @apply mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8;
+  }
+  .btn-primary {
+    /* Marrakech-luxe CTA — terracotta pill with bone-cream text. Solid
+       fill, no gradient. The drop shadow uses the same terracotta in
+       low-alpha so the button looks "lit from below" by warm sandstone
+       light rather than floating on a generic grey halo. */
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-500 px-7 py-3.5 text-sm font-semibold text-cream-50 shadow-[0_4px_18px_rgba(184,84,50,0.35)] transition hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-offset-2 focus:ring-offset-cream-50 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    /* Glass pill — translucent white over the sky background, frosted
+       blur, hairline border. Mirrors the "House / Apartment / Residencial"
+       filter chips in the GoTrip reference. */
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-cream-300 bg-white/70 px-5 py-2 text-xs font-semibold text-ink backdrop-blur-sm transition hover:border-brand-400 hover:bg-white;
+  }
+  .field-label {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-ink-soft;
+  }
+  .field-input {
+    @apply w-full bg-transparent text-sm font-medium text-ink placeholder:text-ink-soft focus:outline-none;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand-700 shadow-sm backdrop-blur;
+  }
+  .star-rating {
+    @apply inline-flex items-center gap-1 text-sm font-semibold text-ink;
+  }
+}
+
+/* Hide scrollbar utility for image carousels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Leaflet safety net — pin the map and its tiles strictly inside their
+   container. Leaflet's default z-index for the container is 400, which
+   can stack over sticky bars / sheets / modals if our wrapper isn't
+   positioned. Forcing a low z-index plus contain:strict guarantees the
+   map can't bleed into adjacent layout, no matter how Leaflet sizes
+   itself internally. */
+.leaflet-container {
+  z-index: 0 !important;
+  contain: strict;
+  isolation: isolate;
+  background: #f5efe2; /* warm sand fallback while tiles load */
+}
+/* Tiles sometimes paint at z-index 200+; keep them under any overlay
+   we render via portals or fixed positioning. */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1 !important;
+}
+
+/* Hero "WIN" — fully-transparent letterforms with a terracotta outline.
+   The hero video plays directly through the WIN shape so the wordmark
+   becomes a window onto the property footage rather than an opaque
+   chip floating above it. Class name kept for legacy usages.
+
+   Layered text-shadow keeps the wordmark readable on any frame: a soft
+   inner halo + a wider outer glow stop the strokes from disappearing
+   on bright panning shots. The horizontal/vertical 1px shadows act as
+   a subtle "second outline" for sub-pixel definition without blurring
+   the silhouette.
+
+   The light-filled-shadow is the trick that makes the inside of WIN
+   feel sharper than naked-stroke text — those four pinprick shadows
+   ring the inner edge of the letterform against the video, picking
+   out detail without blocking the footage. */
+.text-shimmer-blue {
+  color: transparent;
+  /* Thinner outline + translucent terracotta — the wordmark now feels
+     like an etched window: just enough definition to read against the
+     video, without painting any solid colour over the footage. */
+  -webkit-text-stroke: 1.5px rgba(184, 84, 50, 0.7);
+  /* Single subtle aura — kept low-alpha so the video colours stay
+     dominant. No more sharp inner halo or wide outer glow. */
+  text-shadow: 0 0 14px rgba(184, 84, 50, 0.25);
+}
+@media (min-width: 1024px) {
+  /* Stroke width scales gently with the font (60 → 128 px) so the
+     outline keeps the same visual weight, just bumped to 2.5 px on
+     desktop. Still hairline, never solid. */
+  .text-shimmer-blue {
+    -webkit-text-stroke-width: 2.5px;
+  }
+}

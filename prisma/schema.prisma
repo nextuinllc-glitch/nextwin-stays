@@ -1,0 +1,211 @@
+// NEXTWIN admin panel data model.
+// Postgres in production (Supabase). DATABASE_URL points at the Transaction
+// pooler (port 6543, pgbouncer) for runtime; DIRECT_URL points at the
+// session pooler (port 5432) for `prisma migrate`, which can't run through
+// pgbouncer. Multilingual fields (FR / EN / AR) are stored as separate
+// string columns so the public site can read them without parsing JSON,
+// and the admin can edit each language in its own input.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Property {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  type          String   // "riad" | "villa" | "apartment"
+  area          String
+  city          String   @default("Marrakech")
+  rating        Float    @default(4.85)
+  reviewCount   Int      @default(0)
+  guests        Int
+  bedrooms      Int
+  bathrooms     Int
+  pricePerNight Int
+  currency      String   @default("EUR")
+
+  // Multilingual title + descriptions. FR is primary, EN/AR optional.
+  titleFr            String
+  titleEn            String?
+  titleAr            String?
+  shortDescriptionFr String?
+  shortDescriptionEn String?
+  shortDescriptionAr String?
+  descriptionFr      String?
+  descriptionEn      String?
+  descriptionAr      String?
+
+  // JSON-encoded string arrays (SQLite has no native array type).
+  amenitiesJson  String @default("[]")
+  highlightsJson String @default("[]")
+
+  hostName  String  @default("NEXTWIN")
+  hostYears Int     @default(1)
+
+  // Approximate location (privacy-preserving). The public site renders a
+  // ~200m radius zone circle instead of a pin. Null = map section hidden.
+  latitude       Float?
+  longitude      Float?
+  locationRadius Int     @default(200) // metres
+
+  // House rules — overridden by the admin per-property; defaults match
+  // the global Settings values until then.
+  ruleCheckIn       String  @default("À partir de 15h00")
+  ruleCheckOut      String  @default("Avant 11h00")
+  rulePets          String  @default("Sur demande")
+  ruleSmoking       String  @default("Interdit à l'intérieur")
+  ruleAdditional    String?
+
+  images       PropertyImage[]
+  reservations Reservation[]
+
+  published Boolean  @default(true)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Guest profile — auto-created when a reservation is captured. Email + phone
+// are unique-ish but optional (some bookings only have a phone). The repo
+// dedupes on (lower(email)) || phone before inserting.
+model Client {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String?
+  phone        String?
+  nationality  String?
+  language     String?
+  vip          Boolean  @default(false)
+  blocked      Boolean  @default(false)
+  notes        String?
+  totalSpend   Int      @default(0) // denormalised cents-as-int (EUR), recomputed on reservation events
+  reservations Reservation[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([email])
+  @@index([phone])
+}
+
+// The booking ledger. status / source kept as strings for SQLite portability;
+// the canonical enums live in src/lib/reservation-status.ts.
+//
+//   status: PENDING | CONFIRMED | CHECKED_IN | COMPLETED | CANCELLED | NO_SHOW
+//   source: DIRECT | AIRBNB | BOOKING | EXPEDIA | OTHER
+//
+// Conflict guard: app-level in createReservation() — Postgres swap will add
+// an EXCLUDE USING gist (propertyId, daterange(checkIn, checkOut, '[)')) for
+// DB-level enforcement.
+model Reservation {
+  id        String @id @default(cuid())
+  reference String @unique // human-readable: NW-2026-0143
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  status String @default("PENDING")
+  source String @default("DIRECT")
+
+  checkIn  DateTime
+  checkOut DateTime
+  nights   Int
+  guests   Int    @default(2)
+
+  nightlyRate Int
+  cleaningFee Int    @default(0)
+  serviceFee  Int    @default(0)
+  total       Int
+  currency    String @default("EUR")
+
+  notes           String?
+  specialRequests String?
+
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId, checkIn, checkOut])
+  @@index([clientId])
+  @@index([status])
+  @@index([checkIn])
+}
+
+model PropertyImage {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  src        String
+  alt        String   @default("")
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
+}
+
+// Single-row table for site-wide settings (hero copy, contact info, etc.).
+// Always queried/upserted with id = 1.
+model Settings {
+  id Int @id @default(1)
+
+  heroSubtitleFr String @default("Votre location de vacances à Marrakech.")
+  heroSubtitleEn String @default("Your holiday rental in Marrakech.")
+  heroSubtitleAr String @default("إيجارك للعطلات في مراكش.")
+
+  // Static fallback image — also serves as the <video poster> so the hero
+  // paints instantly while the video frames stream in.
+  heroImage String @default("https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=2400&q=80")
+
+  // Optional hero videos — admin uploads two assets (landscape + portrait)
+  // and the browser picks one via <source media> at first paint. Nullable
+  // so the admin can clear them and revert to the static heroImage.
+  heroVideoDesktop String?
+  heroVideoMobile  String?
+
+  whatsappNumber String @default("+212600000000")
+  email          String @default("hello@nextwin.stays")
+  phone          String @default("+212524000000")
+  addressLine    String @default("Gueliz, Marrakech 40000")
+
+  footerBlurbFr String @default("Une sélection soignée de logements à Marrakech.")
+  footerBlurbEn String @default("A curated selection of stays in Marrakech.")
+  footerBlurbAr String @default("تشكيلة منتقاة من الإقامات في مراكش.")
+
+  cleaningFee    Int @default(45)
+  serviceFeeRate Float @default(0.07)
+
+  updatedAt DateTime @updatedAt
+}
+
+// Cookie-based admin session. The cookie holds a signed JWT; the row tracks
+// expiry/revocation server-side so logout is durable.
+model AdminSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+// Per-page editorial content — Home / About / Contact body copy.
+// One row per page, JSON blob keyed by field name with FR/EN/AR
+// variants. Field names are defined in src/lib/page-content-schema.ts
+// and shared between the admin editor and the public page that
+// consumes them. Falls back to the i18n dictionary when a field is
+// empty so the site is never blank.
+model PageContent {
+  id          Int      @id @default(autoincrement())
+  pageKey     String   @unique  // "home" | "about" | "contact"
+  contentJson String   @default("{}")
+  updatedAt   DateTime @updatedAt
+}

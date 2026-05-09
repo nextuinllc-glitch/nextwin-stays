@@ -1,0 +1,54 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts.bak
+
+# User-uploaded catalog photos — kept local; copy to S3/R2 in prod
+/catalog-photos/*/
+/catalog-photos/*.mp4
+/catalog-photos/*.mov
+!/catalog-photos/README.md
+
+# Admin upload destination — local-disk fallback for dev only.
+# In prod these go to Supabase Storage; the DB stores the public URL,
+# so we don't ship the binaries to GitHub (would bloat the repo and
+# break the prod / local URL boundary).
+/public/uploads/
+
+# SQLite dev DB — Postgres lives at Supabase in prod; the local file
+# is regenerated on first `prisma migrate dev` if you switch back.
+/prisma/dev.db
+/prisma/dev.db-journal
+
+# Local deployment secrets
+.deploy/
+
+
+# Local env (Prisma CLI + secrets) — do not commit
+.env
