@@ -1,0 +1,88 @@
+# Deploy the public NEXTWIN STAY site to GitHub Pages as a fully-static
+# export. Admin and API routes are removed in this job before `next build`
+# runs, so they never enter the static output (they keep working when you
+# run `npm run dev` locally — only the public catalog ships to Pages).
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   - DATABASE_URL      Supabase Transaction-pooler URL
+#   - DIRECT_URL        Supabase Session-pooler URL (used by `prisma generate`)
+#   - SUPABASE_ANON_KEY (publishable / anon key — safe in public bundles)
+#   - SUPABASE_URL      e.g. https://<ref>.supabase.co
+#
+# The site URL is auto-derived from GITHUB_REPOSITORY, so deploying a
+# fork to <fork-owner>.github.io/<fork-repo>/ requires no edits here.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Strip server-only routes for static export
+        run: |
+          rm -rf src/app/admin
+          rm -rf src/app/api
+          rm -f src/middleware.ts
+          echo "Removed admin / api / middleware — static export only"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+
+      - name: Build static export
+        run: npm run build
+        env:
+          STATIC_EXPORT: "true"
+          NODE_ENV: production
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+
+      - name: Add .nojekyll
+        # Stops GitHub Pages' Jekyll processing — Next.js emits
+        # underscore-prefixed paths (_next/) which Jekyll would skip.
+        run: touch out/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
