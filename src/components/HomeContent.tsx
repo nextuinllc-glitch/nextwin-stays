@@ -32,8 +32,11 @@ export function HomeContent({ featured, hero, pageContent }: Props) {
       />
 
       {/* Editorial section header — large breathing space, gold-rule
-          divider in lieu of decorative chrome. */}
-      <section className="container-page pb-4 pt-24 sm:pt-32">
+          divider in lieu of decorative chrome. `#properties` is the
+          anchor target for the hero's scroll-cue chevron, so a tap on
+          the pill smoothly scrolls the user from the cinematic hero into
+          the curated catalogue. */}
+      <section id="properties" className="container-page pb-4 pt-24 sm:pt-32">
         <div className="flex flex-col items-center gap-8 text-center">
           <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-brand-600">
             Marrakech · Curated stays

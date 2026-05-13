@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ChevronLeft, MapPin, Star, X } from "lucide-react";
+import { ChevronLeft, MapPin, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Gallery } from "@/components/Gallery";
 import { Amenities } from "@/components/Amenities";
 import { BookingWidget } from "@/components/BookingWidget";
 import { Reviews } from "@/components/Reviews";
+import { getReviewCount, getAverageRating } from "@/lib/reviews-data";
+import { getAreaCopy, formatLocationLine } from "@/data/area-descriptions";
 import { AvailabilityInline } from "@/components/AvailabilityInline";
 import {
   PROPERTY_TYPE_LABEL,
@@ -39,6 +41,10 @@ const PropertyMapZone = dynamic(() => import("@/components/PropertyMapZone"), {
 type Props = {
   property: Property;
   blockedRanges: Array<{ start: string; end: string }>;
+  // Site-wide fees from Supabase Settings. Both default to 0 so a
+  // freshly seeded site shows clean totals; admin edits propagate to
+  // the booking widget + checkout summary via this prop.
+  fees: { cleaningFee: number; serviceFeeRate: number };
 };
 
 // Picks the right translation based on locale, with FR fallback for
@@ -49,11 +55,21 @@ function pick(bundle: { fr: string; en: string | null; ar: string | null }, loca
   return bundle.fr;
 }
 
-export function PropertyDetailContent({ property, blockedRanges }: Props) {
+export function PropertyDetailContent({ property, blockedRanges, fees }: Props) {
   const { t, locale } = useI18n();
   const params = useSearchParams();
   const [showAllRules, setShowAllRules] = useState(false);
   const [isDescOpen, setIsDescOpen] = useState(false);
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
+
+  // Real review numbers — derived from the per-property review pool
+  // (see src/data/property-reviews.json built by scripts/seed-reviews.mjs).
+  // Falls back to the seeded `property.rating` / `reviewCount` when this
+  // property has no reviews assigned yet (e.g., a freshly added listing).
+  const reviewCount = getReviewCount(property.slug);
+  const averageRating = getAverageRating(property.slug);
+  const displayRating = reviewCount > 0 ? averageRating : property.rating;
+  const displayReviewCount = reviewCount > 0 ? reviewCount : property.reviewCount;
 
   // Resolve locale-aware fields client-side so toggling FR/EN/AR re-renders
   // the page without a round-trip. SSR still ships the FR default so the
@@ -72,26 +88,29 @@ export function PropertyDetailContent({ property, blockedRanges }: Props) {
   // affordance would feel silly for two-sentence blurbs).
   const descriptionIsLong = description.length > 280;
 
-  // Lock the page scroll when the full-description modal is open so the
-  // background doesn't drift behind the panel.
+  // Lock the page scroll when any full-screen modal is open so the
+  // background doesn't drift behind the panel. Same handler covers
+  // the description and location modals.
   useEffect(() => {
-    if (!isDescOpen) return;
+    if (!isDescOpen && !isLocationOpen) return;
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = original;
     };
-  }, [isDescOpen]);
+  }, [isDescOpen, isLocationOpen]);
 
-  // Esc closes the modal — keyboard accessibility.
+  // Esc closes whichever modal is open — keyboard accessibility.
   useEffect(() => {
-    if (!isDescOpen) return;
+    if (!isDescOpen && !isLocationOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsDescOpen(false);
+      if (e.key !== "Escape") return;
+      setIsDescOpen(false);
+      setIsLocationOpen(false);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [isDescOpen]);
+  }, [isDescOpen, isLocationOpen]);
 
   // Reads the same ?from=&to= URL params AvailabilityInline writes so the
   // mobile breakdown card stays in sync with the inline date picker.
@@ -107,12 +126,12 @@ export function PropertyDetailContent({ property, blockedRanges }: Props) {
   return (
     // Bottom padding on mobile compensates for the fixed bottom bar at the
     // viewport edge so the last section can scroll fully into view.
-    <div className="container-page py-6 pb-28 sm:py-8 lg:pb-8">
+    <div className="container-page py-6 pb-36 sm:py-8 lg:pb-8">
       <Link
         href="/properties"
         className="inline-flex items-center gap-1 text-xs font-semibold text-ink-muted transition hover:text-ink"
       >
-        <ChevronLeft className="h-3.5 w-3.5" />
+        <ChevronLeft className="h-3.5 w-3.5 rtl:rotate-180" />
         {t.detail.back}
       </Link>
 
@@ -128,12 +147,16 @@ export function PropertyDetailContent({ property, blockedRanges }: Props) {
           the type appears inline with the meta row instead, so the
           headline reads as one clean composition without a coloured
           chip floating above it. */}
+      {/* Airbnb-style title block: bold sans-serif headline (26px mobile,
+          larger on desktop), a single muted meta row "Type · X guests ·
+          Y bedrooms · Z bathrooms" right under it, then a tight rating
+          + location strip. Sized to mirror the Airbnb 2026 mobile detail
+          spec the user referenced. */}
       <div className="mt-6">
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+        <h1 className="font-display text-[22px] font-bold leading-tight tracking-tight text-ink sm:text-[26px] lg:text-[28px]">
           {title}
         </h1>
-        {/* Inline meta row — type · guests · bedrooms · bathrooms */}
-        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-ink-muted">
           <span>{PROPERTY_TYPE_LABEL[property.type]}</span>
           <span>·</span>
           <span>
@@ -148,15 +171,20 @@ export function PropertyDetailContent({ property, blockedRanges }: Props) {
             {property.bathrooms} {t.card.bathrooms}
           </span>
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink">
           <span className="inline-flex items-center gap-1 font-semibold">
             <Star className="h-4 w-4 fill-ink text-ink" />
-            {property.rating.toFixed(2)}
-            <span className="font-normal text-ink-soft">({property.reviewCount})</span>
+            {/* Real numbers — pulled from this property's review pool
+                (see getReviewCount / getAverageRating). The seeded
+                `property.rating` / `property.reviewCount` fields are
+                only used as a fallback for listings without imported
+                reviews yet. */}
+            {displayRating.toFixed(2)}
+            <span className="font-normal text-ink-soft">({displayReviewCount})</span>
           </span>
           <span className="text-ink-soft">·</span>
           <span className="inline-flex items-center gap-1.5 text-ink-muted">
-            <MapPin className="h-3.5 w-3.5 text-brand-600" />
+            <MapPin className="h-3.5 w-3.5 text-brand-500" />
             {property.area}, {property.city}
           </span>
         </div>
@@ -170,11 +198,11 @@ export function PropertyDetailContent({ property, blockedRanges }: Props) {
               behind dimmed, body of the description in full. */}
           {(shortDescription || description) && (
             <section className="border-b border-cream-300 pb-12">
-              <h2 className="font-display text-2xl font-semibold text-ink">
+              <h2 className="font-display text-lg font-bold text-ink sm:text-xl">
                 {t.detail.aboutTitle}
               </h2>
               {shortDescription && (
-                <p className="mt-4 font-display text-xl font-semibold text-ink sm:text-2xl">
+                <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted">
                   {shortDescription}
                 </p>
               )}
@@ -248,28 +276,57 @@ export function PropertyDetailContent({ property, blockedRanges }: Props) {
               place → check amenities → check availability → read what
               guests said → see the area → review the rules. */}
           <div className="border-b border-cream-300 pb-12">
-            <Reviews rating={property.rating} reviewCount={property.reviewCount} />
+            {/* Reviews pulls this property's review array from the
+                JSON pool keyed by slug. `propertyTitle` is forwarded to
+                the "Leave a review" form so the WhatsApp prefill names
+                the actual listing the visitor is rating. */}
+            <Reviews slug={property.slug} propertyTitle={title} />
           </div>
 
-          {/* Emplacement — privacy-preserving zone map */}
-          {property.location && (
-            <section className="border-b border-cream-300 pb-12">
-              <h2 className="font-display text-2xl font-semibold text-ink">{t.map.title}</h2>
-              <p className="mt-2 text-sm text-ink-muted">{t.map.noLocation}</p>
-              <div className="mt-4">
-                <PropertyMapZone
-                  lat={property.location.lat}
-                  lng={property.location.lng}
-                  radius={property.location.radius}
-                  label={t.map.privacyHint.replace("{n}", String(property.location.radius))}
-                />
-              </div>
-            </section>
-          )}
+          {/* "Where you'll be" — privacy-preserving zone map + a
+              neighborhood blurb keyed off the property's `area`. The
+              blurb is clamped to 3 lines inline; "Lire la suite" pops
+              the location modal with the full text plus a "Getting
+              around" subsection (transport, distances). */}
+          {property.location && (() => {
+            const areaCopy = getAreaCopy(property.area);
+            const neighborhood = areaCopy.neighborhood[locale];
+            return (
+              <section className="border-b border-cream-300 pb-12">
+                <h2 className="font-display text-lg font-bold text-ink sm:text-xl">
+                  {t.map.title}
+                </h2>
+                <div className="mt-4">
+                  <PropertyMapZone
+                    lat={property.location.lat}
+                    lng={property.location.lng}
+                    radius={property.location.radius}
+                    label={t.map.privacyHint.replace(
+                      "{n}",
+                      String(property.location.radius),
+                    )}
+                  />
+                </div>
+                <p className="mt-5 text-base font-semibold text-ink">
+                  {formatLocationLine(property.city, locale)}
+                </p>
+                <p className="mt-2 text-sm text-ink-muted line-clamp-3">
+                  {neighborhood}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsLocationOpen(true)}
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-ink underline underline-offset-2 transition hover:text-brand-700"
+                >
+                  {t.map.showMore}
+                </button>
+              </section>
+            );
+          })()}
 
           {/* Bon à savoir — Règles de la maison */}
           <section>
-            <h2 className="font-display text-2xl font-semibold text-ink">{t.rules.sectionTitle}</h2>
+            <h2 className="font-display text-lg font-bold text-ink sm:text-xl">{t.rules.sectionTitle}</h2>
             <h3 className="mt-4 text-sm font-semibold text-ink">{t.detail.rulesTitle}</h3>
             <div className="mt-3 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
               <RuleLine label={t.detail.ruleCheckIn} value={property.rules?.checkIn ?? t.detail.ruleCheckInValue} />
@@ -306,61 +363,51 @@ export function PropertyDetailContent({ property, blockedRanges }: Props) {
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <BookingWidget property={property} />
+          <BookingWidget property={property} blocked={blockedRanges} fees={fees} />
         </aside>
       </div>
 
-      {/* Full description modal — fixed overlay covering the whole
-          viewport, scrollable body. Mobile: full-bleed sheet. Desktop:
-          centred card with rounded corners. Closes on backdrop tap, Esc
-          key, or the X button. */}
+      {/* Full description modal — Airbnb pattern: full-bleed white
+          overlay, sticky back-arrow header, body scrolls. No backdrop
+          dim, no centred card. Closes on Esc or the back arrow. */}
       {isDescOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsDescOpen(false)}
-            aria-hidden
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={t.detail.aboutTitle}
-            className={cn(
-              "fixed z-50 flex flex-col overflow-hidden bg-white shadow-2xl",
-              // Mobile: bottom-sheet fills viewport
-              "inset-x-0 bottom-0 top-12 rounded-t-3xl",
-              // Desktop: centred card
-              "sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-h-[85vh] sm:w-[640px] sm:max-w-[92vw] sm:rounded-2xl",
-            )}
-          >
-            <header className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
-              <h3 className="font-display text-xl font-semibold text-ink">
-                {t.detail.aboutTitle}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsDescOpen(false)}
-                aria-label={t.search.close}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-ink transition hover:bg-gray-50"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </header>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="À propos de ce logement"
+          className="fixed inset-0 z-50 flex flex-col bg-white"
+        >
+          <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-gray-100 bg-white px-4 py-3 sm:px-6">
+            <button
+              type="button"
+              onClick={() => setIsDescOpen(false)}
+              aria-label={t.search.close}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-gray-100"
+            >
+              <ChevronLeft className="h-5 w-5 rtl:rotate-180" />
+            </button>
+          </header>
 
-            <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="flex-1 overflow-y-auto">
+            <div className="container-narrow py-6 sm:py-8">
+              <h2 className="font-display text-2xl font-bold text-ink sm:text-3xl">
+                {t.detail.aboutModalTitle}
+              </h2>
               {shortDescription && (
-                <p className="font-display text-lg font-semibold text-ink sm:text-xl">
+                <p className="mt-5 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted">
                   {shortDescription}
                 </p>
               )}
-              <p className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted">
-                {description}
-              </p>
+              {description && (
+                <p className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted">
+                  {description}
+                </p>
+              )}
               {property.highlights.length > 0 && (
                 <ul className="mt-6 space-y-2.5">
                   {property.highlights.map((h) => (
                     <li key={h} className="flex items-start gap-2.5 text-sm text-ink">
-                      <span className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand-600" />
+                      <span className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
                       <span>{h}</span>
                     </li>
                   ))}
@@ -368,8 +415,58 @@ export function PropertyDetailContent({ property, blockedRanges }: Props) {
               )}
             </div>
           </div>
-        </>
+        </div>
       )}
+
+      {/* Location modal — Airbnb pattern: full-screen white surface,
+          sticky back-arrow header, body shows the area's neighborhood
+          paragraph followed by a "Getting around" subsection with
+          transport / distance details. Copy is shared across every
+          property in the same area (see src/data/area-descriptions.ts). */}
+      {isLocationOpen && property.location && (() => {
+        const areaCopy = getAreaCopy(property.area);
+        return (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.map.title}
+            className="fixed inset-0 z-50 flex flex-col bg-white"
+          >
+            <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-gray-100 bg-white px-4 py-3 sm:px-6">
+              <button
+                type="button"
+                onClick={() => setIsLocationOpen(false)}
+                aria-label={t.search.close}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-gray-100"
+              >
+                <ChevronLeft className="h-5 w-5 rtl:rotate-180" />
+              </button>
+            </header>
+
+            <div className="flex-1 overflow-y-auto">
+              <div className="container-narrow py-6 sm:py-8">
+                <h2 className="font-display text-2xl font-bold text-ink sm:text-3xl">
+                  {t.map.title}
+                </h2>
+
+                <p className="mt-5 text-base font-semibold text-ink">
+                  {formatLocationLine(property.city, locale)}
+                </p>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
+                  {areaCopy.neighborhood[locale]}
+                </p>
+
+                <h3 className="mt-8 text-lg font-bold text-ink">
+                  {t.map.gettingAroundTitle}
+                </h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
+                  {areaCopy.gettingAround[locale]}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

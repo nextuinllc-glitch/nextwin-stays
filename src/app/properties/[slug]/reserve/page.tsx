@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { getPropertyBySlug, getAllPropertySlugs } from "@/lib/property-repo";
+import { getFeeSettings } from "@/lib/settings-repo";
 
 export async function generateStaticParams() {
   const slugs = await getAllPropertySlugs();
@@ -24,8 +25,12 @@ export default async function ReservePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  // Sequential — same reason as the property detail page: the Supabase
+  // pooler is opened with connection_limit=1 and Promise.all over two
+  // queries dead-locks on the pool at build time.
   const property = await getPropertyBySlug(slug);
   if (!property) notFound();
+  const fees = await getFeeSettings();
 
   // <Suspense> required because CheckoutForm calls useSearchParams() to
   // hydrate the dates / guest count from the URL on the client. Without
@@ -33,7 +38,11 @@ export default async function ReservePage({
   // suspense boundary at page".
   return (
     <Suspense>
-      <CheckoutForm property={property} initial={{ from: null, to: null, guests: 2 }} />
+      <CheckoutForm
+        property={property}
+        initial={{ from: null, to: null, guests: 2 }}
+        fees={fees}
+      />
     </Suspense>
   );
 }

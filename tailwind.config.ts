@@ -5,48 +5,49 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Marrakech-luxe palette — terracotta and warm sand, the colours
-        // of the Medina walls at sunset. brand-500 is the canonical
-        // primary (CTAs, accents); brand-300 is the lighter wash for
-        // glass surfaces and hovers. The 50–900 scale tracks ochre /
-        // terracotta / burnt-sienna in a continuous progression so
-        // existing brand-* references re-theme without per-component
-        // edits.
+        // Airbnb-style palette — magenta primary (`#FF385C`), bone-white
+        // surfaces, near-black ink. Token names kept (brand / cream /
+        // ink) so every existing `bg-brand-500`, `text-ink-muted` etc.
+        // re-themes without per-component edits.
         brand: {
-          50: "#FBF1EB",
-          100: "#F2DDC9",
-          200: "#E5BC9B",
-          300: "#D89466",
-          400: "#C77144",
-          500: "#B85432",
-          600: "#9D3F23",
-          700: "#7C2F1A",
-          800: "#5C2113",
-          900: "#3D160C",
-          DEFAULT: "#B85432",
+          50: "#FFF1F4",
+          100: "#FFE4EA",
+          200: "#FFC9D4",
+          300: "#FFA3B7",
+          400: "#FF5A5F", // Airbnb light
+          500: "#FF385C", // Airbnb primary
+          600: "#E00B41", // Airbnb dark — hover state
+          700: "#D70466",
+          800: "#9B0033",
+          900: "#5C001C",
+          DEFAULT: "#FF385C",
         },
-        // Warm near-black — feels candle-lit on the sand background,
-        // never industrial. Body text pairs cleanly with the ochre
-        // primary; soft is for meta lines / disabled states.
+        // Airbnb text scale — strict-neutral, no warmth. Pair the
+        // magenta primary with a pure-grey ink so CTAs stay loud
+        // without competing with body copy.
         ink: {
-          DEFAULT: "#1A1410",
-          muted: "#5A4A3E",
-          soft: "#9A8B7E",
+          DEFAULT: "#222222",
+          muted: "#717171",
+          soft: "#B0B0B0",
         },
-        // Sand surfaces. cream-100 is the page bg (warm bone), cream-50
-        // is bright bone for cards, cream-200 is dune for alt panels.
-        // Replaces the cool sky tint with a sun-dried adobe undertone.
+        // White-and-grey surface scale. cream-50 is the page bg (pure
+        // white) — kept the `cream` name so existing utilities don't
+        // need a rename. cream-100 is the Airbnb panel grey, cream-200
+        // mid-grey for hover states, cream-300 is the input border.
         cream: {
-          DEFAULT: "#F5EFE2",
-          50: "#FAF6EC",
-          100: "#F5EFE2",
-          200: "#EDE0CB",
-          300: "#D9C5A5",
+          DEFAULT: "#FFFFFF",
+          50: "#FFFFFF",
+          100: "#F7F7F7",
+          200: "#F0F0F0",
+          300: "#DDDDDD",
         },
       },
       fontFamily: {
+        // Both stacks resolve to Inter (see layout.tsx). `display` is
+        // kept for semantic clarity — components that use it inherit a
+        // heavier weight in their utility classes (font-semibold etc).
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "Georgia", "serif"],
+        display: ["var(--font-display)", "var(--font-sans)", "system-ui", "sans-serif"],
       },
       boxShadow: {
         // Neutral charcoal shadows — Airbnb pages have a softer, less

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, ChevronLeft, ChevronRight, Grid2x2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -15,14 +15,24 @@ type Props = {
 export function Gallery({ images }: Props) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  // `index` is shared between the lightbox and the mobile swipe carousel
+  // so opening the fullscreen from a swiped position lands on the same
+  // photo the user was last looking at, not back at photo 0.
   const [index, setIndex] = useState(0);
+  const total = images.length;
+
+  // Mobile swipe-gesture bookkeeping — mirrors the PropertyCard pattern.
+  // Tapping the photo opens the lightbox, swiping it cycles through
+  // without opening the fullscreen.
+  const touchStartXRef = useRef<number | null>(null);
+  const swipedRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
-      if (e.key === "ArrowRight") setIndex((i) => (i + 1) % images.length);
-      if (e.key === "ArrowLeft") setIndex((i) => (i - 1 + images.length) % images.length);
+      if (e.key === "ArrowRight") setIndex((i) => (i + 1) % total);
+      if (e.key === "ArrowLeft") setIndex((i) => (i - 1 + total) % total);
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -30,38 +40,104 @@ export function Gallery({ images }: Props) {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [open, images.length]);
+  }, [open, total]);
 
   const openAt = (i: number) => {
     setIndex(i);
     setOpen(true);
   };
 
-  // Always render up to 4 secondary tiles. If the property has fewer than 5
-  // images we fall back to repeating from the start so the right-hand 2x2
-  // grid never has empty cells.
+  // Mobile-only handlers — desktop has the 2×2 magazine spread instead.
+  const SWIPE_THRESHOLD = 40;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0]?.clientX ?? null;
+    swipedRef.current = false;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const startX = touchStartXRef.current;
+    if (startX == null || total <= 1) return;
+    const endX = e.changedTouches[0]?.clientX;
+    if (endX == null) return;
+    const dx = endX - startX;
+    if (Math.abs(dx) >= SWIPE_THRESHOLD) {
+      swipedRef.current = true;
+      if (dx > 0) setIndex((i) => (i - 1 + total) % total);
+      else setIndex((i) => (i + 1) % total);
+    }
+    touchStartXRef.current = null;
+  };
+  const handleImageTap = () => {
+    // A real tap opens the lightbox; a swipe-then-release flips the flag
+    // first so we know not to open. Reset for the next interaction.
+    if (swipedRef.current) {
+      swipedRef.current = false;
+      return;
+    }
+    openAt(index);
+  };
+
+  // Desktop magazine spread — always uses image[0] as the hero plus 4
+  // fixed thumbnails. Repeating from the start when total < 5 so the
+  // 2×2 grid never has empty cells.
   const secondaryTiles = Array.from({ length: 4 }, (_, i) => {
-    const idx = (i + 1) % images.length;
+    const idx = (i + 1) % total;
     return { ...images[idx], _idx: idx };
   });
 
   return (
     <>
-      {/* Mobile hero gets a generous square (1:1) aspect so the photo
-          actually fills the viewport like a hotel-app card. Desktop
-          keeps the magazine-spread layout: hero takes 2 of 4 cols and
-          stretches both rows, so it grows naturally with the secondary
-          2×2 tile grid next to it (taller min-height to give it heft). */}
-      <div className="grid grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-3xl md:min-h-[520px]">
+      {/* ─── MOBILE: swipeable single-image carousel ─── */}
+      <div className="md:hidden">
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onClick={handleImageTap}
+          // Subtle portrait (6:7) — taller than a square but smaller
+          // than 4:5, so the next section is comfortably visible at
+          // the fold. Swipe gesture is the only navigation affordance;
+          // the counter pill is the only on-image UI.
+          className="relative aspect-[6/7] w-full overflow-hidden rounded-3xl bg-gray-100 touch-pan-y"
+        >
+          {images.map((img, i) => (
+            <div
+              key={i}
+              className={cn(
+                "absolute inset-0 transition-opacity duration-500",
+                i === index ? "opacity-100" : "opacity-0",
+              )}
+            >
+              <Image
+                src={img.src}
+                alt={img.alt}
+                fill
+                sizes="100vw"
+                priority={i === 0}
+                className="object-cover"
+              />
+            </div>
+          ))}
+
+          {/* Position counter — bottom-right pill, mirrors the lightbox
+              counter so users know how many photos are left to swipe. */}
+          {total > 1 && (
+            <span className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white">
+              {index + 1} / {total}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ─── DESKTOP: magazine 2×2 spread ─── */}
+      <div className="hidden grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-3xl md:grid md:min-h-[520px]">
         <button
           onClick={() => openAt(0)}
-          className="relative col-span-4 row-span-2 aspect-square overflow-hidden md:col-span-2 md:aspect-auto"
+          className="relative col-span-2 row-span-2 overflow-hidden"
         >
           <Image
             src={images[0].src}
             alt={images[0].alt}
             fill
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="50vw"
             priority
             className="object-cover transition hover:scale-[1.02]"
           />
@@ -70,7 +146,7 @@ export function Gallery({ images }: Props) {
           <button
             key={i}
             onClick={() => openAt(img._idx)}
-            className="relative hidden aspect-square overflow-hidden md:block"
+            className="relative aspect-square overflow-hidden"
           >
             <Image
               src={img.src}
@@ -79,30 +155,30 @@ export function Gallery({ images }: Props) {
               sizes="25vw"
               className="object-cover transition hover:scale-[1.02]"
             />
-            {i === 3 && images.length > 5 && (
+            {i === 3 && total > 5 && (
               <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-semibold text-white">
-                +{images.length - 5} photos
+                +{total - 5} photos
               </span>
             )}
           </button>
         ))}
       </div>
 
+      {/* "View all photos" CTA — visible on every breakpoint as the
+          escape hatch from the inline view into the fullscreen lightbox. */}
       <div className="mt-3 flex justify-end">
-        <button
-          onClick={() => openAt(0)}
-          className="btn-ghost"
-        >
+        <button onClick={() => openAt(index)} className="btn-ghost">
           <Grid2x2 className="h-4 w-4" />
-          <span>{t.detail.viewAllPhotos.replace("{n}", String(images.length))}</span>
+          <span>{t.detail.viewAllPhotos.replace("{n}", String(total))}</span>
         </button>
       </div>
 
+      {/* ─── LIGHTBOX: fullscreen carousel ─── */}
       {open && (
         <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
           <div className="flex items-center justify-between p-4 text-white">
             <span className="text-sm font-medium">
-              {index + 1} / {images.length}
+              {index + 1} / {total}
             </span>
             <button
               onClick={() => setOpen(false)}
@@ -121,14 +197,14 @@ export function Gallery({ images }: Props) {
               className="object-contain"
             />
             <button
-              onClick={() => setIndex((i) => (i - 1 + images.length) % images.length)}
+              onClick={() => setIndex((i) => (i - 1 + total) % total)}
               aria-label="Previous"
               className="absolute left-4 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
-              onClick={() => setIndex((i) => (i + 1) % images.length)}
+              onClick={() => setIndex((i) => (i + 1) % total)}
               aria-label="Next"
               className="absolute right-4 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
             >

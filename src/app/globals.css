@@ -6,6 +6,14 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Smooth scroll for in-page anchor links — the hero scroll-cue
+       chevron jumps to #properties, this turns the jump into a glide. */
+    scroll-behavior: smooth;
+  }
+  /* Respect the OS reduced-motion preference: vestibular-sensitive users
+     get the instant-jump default back. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
   }
   body {
     @apply bg-cream-50 text-ink;
@@ -23,17 +31,18 @@
     @apply mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8;
   }
   .btn-primary {
-    /* Marrakech-luxe CTA — terracotta pill with bone-cream text. Solid
-       fill, no gradient. The drop shadow uses the same terracotta in
-       low-alpha so the button looks "lit from below" by warm sandstone
-       light rather than floating on a generic grey halo. */
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-500 px-7 py-3.5 text-sm font-semibold text-cream-50 shadow-[0_4px_18px_rgba(184,84,50,0.35)] transition hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-offset-2 focus:ring-offset-cream-50 disabled:cursor-not-allowed disabled:opacity-50;
+    /* Airbnb-style CTA — magenta with the signature 3-stop gradient
+       (#E61E4D → #E31C5F → #D70466). 8px radius (not full pill), bold
+       semibold weight, subtle drop shadow tinted with the same magenta.
+       Active state nudges in by 2% for the tactile press feel. */
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#E61E4D] via-[#E31C5F] to-[#D70466] px-6 py-3 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,56,92,0.25)] transition hover:opacity-90 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-ghost {
-    /* Glass pill — translucent white over the sky background, frosted
-       blur, hairline border. Mirrors the "House / Apartment / Residencial"
-       filter chips in the GoTrip reference. */
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-cream-300 bg-white/70 px-5 py-2 text-xs font-semibold text-ink backdrop-blur-sm transition hover:border-brand-400 hover:bg-white;
+    /* Airbnb outline pill — white surface, hairline 1px border in the
+       neutral cream-300 grey (#DDDDDD), text in near-black ink. Hover
+       darkens the border to match the text weight. Used for secondary
+       actions, filter chips, "show all photos" overlays. */
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-cream-300 bg-white px-5 py-2 text-xs font-semibold text-ink transition hover:border-ink hover:bg-cream-100;
   }
   .field-label {
     @apply text-[11px] font-semibold uppercase tracking-wider text-ink-soft;
@@ -68,7 +77,7 @@
   z-index: 0 !important;
   contain: strict;
   isolation: isolate;
-  background: #f5efe2; /* warm sand fallback while tiles load */
+  background: #f7f7f7; /* neutral grey fallback while tiles load */
 }
 /* Tiles sometimes paint at z-index 200+; keep them under any overlay
    we render via portals or fixed positioning. */
@@ -95,13 +104,13 @@
    out detail without blocking the footage. */
 .text-shimmer-blue {
   color: transparent;
-  /* Thinner outline + translucent terracotta — the wordmark now feels
-     like an etched window: just enough definition to read against the
-     video, without painting any solid colour over the footage. */
-  -webkit-text-stroke: 1.5px rgba(184, 84, 50, 0.7);
-  /* Single subtle aura — kept low-alpha so the video colours stay
-     dominant. No more sharp inner halo or wide outer glow. */
-  text-shadow: 0 0 14px rgba(184, 84, 50, 0.25);
+  /* Etched-window wordmark — translucent magenta outline (Airbnb
+     `#FF385C`) so the hero video plays through the WIN cut-out. Stroke
+     stays hairline + low-alpha so the footage colour stays dominant. */
+  -webkit-text-stroke: 1.5px rgba(255, 56, 92, 0.7);
+  /* Single soft aura — keeps the wordmark readable on any frame
+     without painting solid colour over the footage. */
+  text-shadow: 0 0 14px rgba(255, 56, 92, 0.25);
 }
 @media (min-width: 1024px) {
   /* Stroke width scales gently with the font (60 → 128 px) so the

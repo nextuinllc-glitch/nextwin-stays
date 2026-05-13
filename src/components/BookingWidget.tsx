@@ -1,27 +1,34 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  CalendarDays,
-  Users,
-  Minus,
-  Plus,
-  ShieldCheck,
-  X,
-} from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Minus, Plus, ShieldCheck, X } from "lucide-react";
 import { StarRating } from "./StarRating";
+import { getAverageRating, getReviewCount } from "@/lib/reviews-data";
 import { formatPrice, nightsBetween, cn } from "@/lib/utils";
 import type { Property } from "@/lib/properties";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { Locale } from "@/i18n/dictionaries";
+import { DatesPopup } from "./DatesPopup";
+
+type BlockedRange = { start: string; end: string };
+
+type FeeSettings = { cleaningFee: number; serviceFeeRate: number };
 
 type Props = {
   property: Property;
+  // Blocked dates passed through to the multi-month date picker so the
+  // popup respects the same availability rules as the inline calendar.
+  blocked?: BlockedRange[];
+  // Site-wide fees from Supabase Settings (admin-editable). Defaults
+  // to zero so a fresh seed shows clean totals.
+  fees?: FeeSettings;
 };
 
-const SERVICE_FEE_RATE = 0.07;
-const CLEANING_FEE = 45;
+// Default fees when the parent doesn't pass any — keeps the widget
+// safe to mount in isolation (e.g., admin previews). Real values come
+// from Supabase Settings via the `fees` prop.
+const DEFAULT_FEES: FeeSettings = { cleaningFee: 0, serviceFeeRate: 0 };
 
 // Concierge WhatsApp number — kept aligned with CheckoutForm so the
 // "Envoyer une demande" CTA in the mobile sheet routes to the same line.
@@ -49,32 +56,18 @@ function scrollToAvailability() {
   el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-export function BookingWidget({ property }: Props) {
-  const router = useRouter();
+export function BookingWidget({ property, blocked = [], fees = DEFAULT_FEES }: Props) {
+  const { cleaningFee: CLEANING_FEE, serviceFeeRate: SERVICE_FEE_RATE } = fees;
   const params = useSearchParams();
   const { t, locale } = useI18n();
   const from = parseISO(params.get("from"));
   const to = parseISO(params.get("to"));
   const [guests, setGuests] = useState(2);
   const [openGuests, setOpenGuests] = useState(false);
-  // Mobile-only welbnb-style summary sheet. Triggered from the fixed bar
-  // and contains the date trigger (scrolls to inline calendar), guests
-  // counter, send-request CTA, and Reserve Now CTA.
-  const [openSheet, setOpenSheet] = useState(false);
+  // Controls the full-screen multi-month date popup. Opens from the
+  // sticky bar's date area or the "Check availability" button.
+  const [datesPopupOpen, setDatesPopupOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-
-  // Local YYYY-MM-DD — never use toISOString() here (converts to UTC and
-  // rolls back a day west of GMT, breaking the user's actual pick).
-  const isoLocal = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
-  const goToCheckout = () => {
-    const q = new URLSearchParams();
-    if (from) q.set("from", isoLocal(from));
-    if (to) q.set("to", isoLocal(to));
-    q.set("guests", String(guests));
-    router.push(`/properties/${property.slug}/reserve?${q.toString()}`);
-  };
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -84,15 +77,17 @@ export function BookingWidget({ property }: Props) {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  // Lock body scroll while either the guests panel or the mobile sheet is open.
+  // Lock body scroll while the guests popover is open — it's the only
+  // modal left on this widget (the mobile sheet was retired in favour
+  // of a direct Reserve→WhatsApp flow from the sticky bar).
   useEffect(() => {
-    if (!openGuests && !openSheet) return;
+    if (!openGuests) return;
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = original;
     };
-  }, [openGuests, openSheet]);
+  }, [openGuests]);
 
   const nights = nightsBetween(from, to);
   const subtotal = property.pricePerNight * Math.max(nights, 0);
@@ -114,13 +109,21 @@ export function BookingWidget({ property }: Props) {
   const nightLabel = (n: number) => (n === 1 ? t.booking.nightSingular : t.booking.nightPlural);
   const guestLabel = (n: number) => (n === 1 ? t.search.guestSingular : t.search.guestPlural);
 
-  // WhatsApp prefill — substitutes property/dates/guests into the locale's
-  // request template and falls back gracefully when dates aren't picked yet.
+  // WhatsApp prefill — substitutes property/dates/guests AND the
+  // computed reservation totals (nights, price/night, full total) into
+  // the locale's request template. Falls back to a placeholder when
+  // dates aren't picked yet so the message stays sensible even if the
+  // user opens WhatsApp from the "Check availability" path.
+  const totalForMessage = nights > 0 ? total : property.pricePerNight;
   const requestMessage = t.booking.requestPrefill
     .replace("{property}", property.title)
     .replace("{from}", from ? fmtDate(from) : "—")
     .replace("{to}", to ? fmtDate(to) : "—")
-    .replace("{guests}", String(guests));
+    .replace("{nights}", String(nights))
+    .replace("{nightLabel}", nightLabel(nights))
+    .replace("{guests}", String(guests))
+    .replace("{pricePerNight}", formatPrice(property.pricePerNight))
+    .replace("{total}", formatPrice(totalForMessage));
   const whatsappHref = `https://wa.me/${CONCIERGE_PHONE.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
     requestMessage,
   )}`;
@@ -136,14 +139,17 @@ export function BookingWidget({ property }: Props) {
             </span>
             <span className="ml-1 text-sm text-ink-muted">{t.booking.perNight}</span>
           </div>
-          <StarRating rating={property.rating} reviewCount={property.reviewCount} />
+          <StarRating
+            rating={getReviewCount(property.slug) > 0 ? getAverageRating(property.slug) : property.rating}
+            reviewCount={getReviewCount(property.slug) || property.reviewCount}
+          />
         </div>
 
         <div className="mt-4 overflow-hidden rounded-xl border border-gray-200">
           <div className="grid grid-cols-2 divide-x divide-gray-200 border-b border-gray-200">
             <button
               type="button"
-              onClick={scrollToAvailability}
+              onClick={() => setDatesPopupOpen(true)}
               className="px-3 py-2.5 text-left transition hover:bg-gray-50"
             >
               <div className="field-label">{t.search.arrival}</div>
@@ -153,7 +159,7 @@ export function BookingWidget({ property }: Props) {
             </button>
             <button
               type="button"
-              onClick={scrollToAvailability}
+              onClick={() => setDatesPopupOpen(true)}
               className="px-3 py-2.5 text-left transition hover:bg-gray-50"
             >
               <div className="field-label">{t.search.departure}</div>
@@ -177,20 +183,31 @@ export function BookingWidget({ property }: Props) {
           </button>
         </div>
 
-        <button
-          type="button"
-          disabled={!canReserve}
-          onClick={() => {
-            if (!canReserve) {
-              scrollToAvailability();
-              return;
-            }
-            goToCheckout();
-          }}
-          className="btn-primary mt-4 w-full !py-3.5 !text-base"
-        >
-          {canReserve ? t.booking.reserve : t.booking.selectDates}
-        </button>
+        {/* Desktop Reserve CTA — when dates + guest count are valid the
+            button is a direct WhatsApp deep-link (no intermediate
+            checkout page, no DB write — we're a static-export public
+            site). When dates aren't set yet the button instead scrolls
+            to the inline calendar so the user can pick them. The
+            anchor's `aria-disabled` keeps it semantically correct in
+            the disabled state without dropping pointer-events. */}
+        {canReserve ? (
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary mt-4 w-full !py-3.5 !text-base"
+          >
+            {t.booking.reserve}
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setDatesPopupOpen(true)}
+            className="btn-primary mt-4 w-full !py-3.5 !text-base"
+          >
+            {t.booking.selectDates}
+          </button>
+        )}
 
         <p className="mt-2 text-center text-[11px] text-ink-soft">{t.booking.noChargeYet}</p>
 
@@ -223,172 +240,79 @@ export function BookingWidget({ property }: Props) {
         </div>
       </div>
 
-      {/* Mobile sticky bottom bar — always visible. Welbnb-style: a slim
-          status row (price or "add dates" hint) plus a single CTA button
-          that opens the summary sheet below. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white shadow-[0_-8px_24px_rgba(15,23,42,0.08)] lg:hidden">
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
-          <div className="min-w-0">
+      {/* Mobile sticky bottom bar — Airbnb-style: total (or "add dates"
+          hint) on the LEFT, gradient Reserve button on the RIGHT.
+          - Dates picked + guests valid → Reserve is a direct WhatsApp
+            deep-link, no intermediate sheet (the message includes
+            dates, nights, price/night, and total, see whatsappHref).
+          - Dates not picked → button label switches to "Check
+            availability" and opens the full-screen multi-month popup.
+          Tapping the price/summary on the left also opens the date
+          popup so the user can edit their pick. The guests count
+          lives in the inline `openGuests` popover triggered separately
+          (a small pill rendered above the date summary). */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <div className="flex items-center justify-between gap-3 px-4 py-4">
+          <button
+            type="button"
+            onClick={() => setDatesPopupOpen(true)}
+            className="min-w-0 text-left"
+          >
             {nights > 0 ? (
               <>
-                <div className="text-base font-semibold text-ink">{formatPrice(total)}</div>
-                <div className="text-[11px] font-semibold text-brand-700">
-                  {t.booking.total} · {nights} {nightLabel(nights)}
+                <div className="text-base font-semibold text-ink underline decoration-1 underline-offset-4">
+                  {formatPrice(total)}
+                </div>
+                <div className="text-[11px] text-ink-muted">
+                  {dateRangeLabel} · {nights} {nightLabel(nights)} · {guests}{" "}
+                  {guestLabel(guests)}
                 </div>
               </>
             ) : (
               <>
-                <div className="text-sm font-semibold text-ink">
+                <div className="text-sm font-semibold text-ink underline decoration-1 underline-offset-4">
                   {t.booking.addDatesForPrice}
                 </div>
                 <div className="text-[11px] text-ink-muted">
-                  {formatPrice(property.pricePerNight)} {t.booking.perNight}
+                  {formatPrice(property.pricePerNight)} {t.booking.perNight} · {guests}{" "}
+                  {guestLabel(guests)}
                 </div>
               </>
             )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setOpenSheet(true)}
-            className="shrink-0 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
-          >
-            {nights > 0 ? t.booking.reserveNow : t.booking.viewAvailability}
           </button>
+
+          {canReserve ? (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary shrink-0"
+            >
+              {t.booking.reserve}
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setDatesPopupOpen(true)}
+              className="btn-primary shrink-0"
+            >
+              {t.booking.viewAvailability}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Mobile summary sheet — opened from the sticky bar. Mirrors the
-          welbnb pattern: brief instruction, date pill (scrolls to inline
-          calendar), guests counter, plus Send-request and Reserve CTAs. */}
-      {openSheet && (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
-            onClick={() => setOpenSheet(false)}
-            aria-hidden
-          />
-          <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-3xl border-t border-gray-100 bg-white p-5 shadow-2xl lg:hidden">
-            <button
-              type="button"
-              onClick={() => setOpenSheet(false)}
-              aria-label={t.search.close}
-              className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-full text-ink transition hover:bg-gray-50"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <p className="mt-1 text-sm leading-relaxed text-ink-muted">
-              {t.booking.sheetIntro}
-            </p>
-
-            {/* Date trigger — taps close the sheet and scroll to the
-                inline calendar, the single source of truth for dates. */}
-            <button
-              type="button"
-              onClick={() => {
-                setOpenSheet(false);
-                // Wait one frame so the body unlocks before we scroll.
-                requestAnimationFrame(() => scrollToAvailability());
-              }}
-              className="mt-4 flex w-full items-center gap-3 rounded-full border border-gray-200 px-4 py-3 text-left transition hover:border-brand-300 hover:bg-gray-50"
-            >
-              <CalendarDays className="h-4 w-4 shrink-0 text-ink-soft" />
-              <span
-                className={cn(
-                  "truncate text-sm font-semibold",
-                  from ? "text-ink" : "text-ink-soft",
-                )}
-              >
-                {dateRangeLabel}
-              </span>
-            </button>
-
-            {/* Inline guests stepper — keeps the sheet self-contained
-                without spawning yet another modal on top of it. */}
-            <div className="mt-3 flex w-full items-center justify-between rounded-full border border-gray-200 px-4 py-2.5">
-              <div className="flex min-w-0 items-center gap-3">
-                <Users className="h-4 w-4 shrink-0 text-ink-soft" />
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-ink">
-                    {guests} {guestLabel(guests)}
-                  </div>
-                  <div className="text-[11px] text-ink-soft">
-                    {t.detail.upToGuests.replace("{n}", String(property.guests))}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setGuests((g) => Math.max(1, g - 1))}
-                  disabled={guests <= 1}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-ink transition hover:border-brand-300 disabled:opacity-40"
-                  aria-label={t.search.decreaseGuests}
-                >
-                  <Minus className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGuests((g) => Math.min(property.guests, g + 1))}
-                  disabled={guests >= property.guests}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-ink transition hover:border-brand-300 disabled:opacity-40"
-                  aria-label={t.search.increaseGuests}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Live total when dates are picked, so users see the impact
-                of changing guests without leaving the sheet. */}
-            {nights > 0 && (
-              <div className="mt-4 flex items-center justify-between rounded-2xl bg-cream-50 px-4 py-3">
-                <div>
-                  <div className="text-base font-semibold text-ink">
-                    {formatPrice(total)}
-                  </div>
-                  <div className="text-[11px] text-ink-muted">
-                    {t.booking.total} · {nights} {nightLabel(nights)}
-                  </div>
-                </div>
-                <div className="text-[11px] text-ink-soft">
-                  {formatPrice(property.pricePerNight)} {t.booking.perNight}
-                </div>
-              </div>
-            )}
-
-            <div className="mt-5 grid grid-cols-1 gap-3">
-              <a
-                href={whatsappHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-12 items-center justify-center rounded-full border border-brand-600 bg-white text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
-              >
-                {t.booking.sendRequest}
-              </a>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!canReserve) {
-                    setOpenSheet(false);
-                    requestAnimationFrame(() => scrollToAvailability());
-                    return;
-                  }
-                  setOpenSheet(false);
-                  goToCheckout();
-                }}
-                className="inline-flex h-12 items-center justify-center rounded-full bg-brand-600 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
-              >
-                {t.booking.reserveNow}
-              </button>
-            </div>
-
-            <p className="mt-3 text-center text-[11px] text-ink-soft">
-              {t.booking.noChargeYet}
-            </p>
-          </div>
-        </>
-      )}
+      {/* Full-screen multi-month date picker. Opens from the sticky
+          bar's price/summary tap or the "Check availability" button.
+          Commits to the URL on save so the inline calendar + sticky
+          bar both auto-update from the same source of truth. */}
+      <DatesPopup
+        open={datesPopupOpen}
+        onClose={() => setDatesPopupOpen(false)}
+        blocked={blocked}
+        pricePerNight={property.pricePerNight}
+        currency={(property.currency ?? "EUR") as "EUR" | "USD"}
+      />
 
       {/* Guests panel — desktop-only quick selector reachable from the
           sidebar widget. Mobile uses the inline stepper inside the sheet. */}

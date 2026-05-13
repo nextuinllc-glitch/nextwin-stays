@@ -1,24 +1,26 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { SITE_URL, SITE_NAME, hreflangAlternates } from "@/lib/seo";
 
+// Airbnb / Menara style: Inter everywhere, no display serif. The display
+// CSS variable still resolves so existing `font-display` classes inherit
+// the same Inter face — they just render in bold weight, no font swap.
 const sans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const display = Playfair_Display({
+const display = Inter({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["500", "600", "700"],
+  weight: ["600", "700", "800"],
 });
 
 const HOME_TITLE =
@@ -84,14 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <I18nProvider>
           <Header />
           <main className="flex-1">{children}</main>
-          {/* Bottom padding on mobile so the floating nav doesn't sit
-              over the last sliver of the footer / final section. */}
-          <div className="pb-20 lg:pb-0">
-            <Footer />
-          </div>
-          {/* Floating mobile bottom-nav pill — only renders on mobile and
-              hides itself on routes that have their own sticky CTA. */}
-          <MobileBottomNav />
+          <Footer />
         </I18nProvider>
       </body>
     </html>

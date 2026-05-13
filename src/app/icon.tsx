@@ -21,7 +21,7 @@ export default function Icon() {
           justifyContent: "center",
           // Terracotta gradient — sun-baked sandstone, the colour of the
           // Marrakech Medina walls at golden hour.
-          background: "linear-gradient(135deg, #B85432 0%, #7C2F1A 100%)",
+          background: "linear-gradient(135deg, #FF385C 0%, #E00B41 100%)",
           borderRadius: 7,
         }}
       >

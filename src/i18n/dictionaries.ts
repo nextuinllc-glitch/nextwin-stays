@@ -11,7 +11,7 @@ export const LOCALE_LABEL: Record<Locale, string> = {
 
 export const RTL_LOCALES: Locale[] = ["ar"];
 
-// Single shape — keys identical across all three locales so the type system
+// Single shape - keys identical across all three locales so the type system
 // catches missing translations.
 type Dict = {
   nav: {
@@ -90,6 +90,11 @@ type Dict = {
     washer: string;
     concierge: string;
     tennis: string;
+    bbq: string;
+    housekeeping: string;
+    elevator: string;
+    chef: string;
+    selfCheckIn: string;
   };
   footer: {
     blurb: string;
@@ -111,9 +116,23 @@ type Dict = {
     back: string;
     share: string;
     save: string;
-    viewAllPhotos: string; // "Voir les {n} photos" — replace {n}
+    viewAllPhotos: string; // "Voir les {n} photos" - replace {n}
     aboutTitle: string;
+    aboutModalTitle: string;        // longer form for the full-screen modal
     amenitiesTitle: string;
+    amenitiesModalTitle: string;    // longer form for the full-screen modal
+    amenityCategories: {
+      bathroom: string;
+      bedroom: string;
+      entertainment: string;
+      heatingCooling: string;
+      internet: string;
+      kitchen: string;
+      outdoor: string;
+      parking: string;
+      services: string;
+      other: string;
+    };
     showAllAmenities: string; // "Voir les {n} équipements"
     showLess: string;
     rulesTitle: string;
@@ -129,7 +148,7 @@ type Dict = {
     rulePetsValue: string;
     ruleSmoking: string;
     ruleSmokingValue: string;
-    hostedBy: string; // "Hébergé par {name}" — kept for legacy callers
+    hostedBy: string; // "Hébergé par {name}" - kept for legacy callers
     hostingYears: string; // legacy
     identityVerified: string;
     speaksLanguages: string;
@@ -144,11 +163,11 @@ type Dict = {
     reserve: string;
     reserveNow: string;
     selectDates: string;
-    selectDatesPill: string; // mobile sheet pill — "Sélectionnez Les Dates"
-    addDatesForPrice: string; // collapsed bar — "Ajouter des dates pour les prix"
-    viewAvailability: string; // collapsed bar CTA — "Voir les disponibilités"
-    sheetIntro: string; // sheet subtitle — "Sélectionnez les dates et le nombre…"
-    sendRequest: string; // outlined CTA — "Envoyer une demande"
+    selectDatesPill: string; // mobile sheet pill - "Sélectionnez Les Dates"
+    addDatesForPrice: string; // collapsed bar - "Ajouter des dates pour les prix"
+    viewAvailability: string; // collapsed bar CTA - "Voir les disponibilités"
+    sheetIntro: string; // sheet subtitle - "Sélectionnez les dates et le nombre…"
+    sendRequest: string; // outlined CTA - "Envoyer une demande"
     requestPrefill: string; // WhatsApp prefill template
     noChargeYet: string;
     cleaningFee: string;
@@ -161,7 +180,38 @@ type Dict = {
   };
   reviews: {
     showAll: string; // "Voir tous les {n} avis"
-    reviewsLabel: string; // "avis" / "reviews" — used in title
+    reviewsLabel: string; // "avis" / "reviews" - used in title
+    guestFavourite: string;
+    guestFavouriteDescription: string;
+    overallRating: string;
+    leaveReviewCta: string;
+    pendingBadge: string;
+    showMore: string;
+    showLess: string;
+    categories: {
+      cleanliness: string;
+      accuracy: string;
+      checkin: string;
+      communication: string;
+      location: string;
+      value: string;
+    };
+    form: {
+      title: string;
+      subtitle: string;
+      firstName: string;
+      city: string;
+      reviewLabel: string;
+      reviewPlaceholder: string;
+      remainingChars: string; // "Au moins 20 caractères - {n} restants"
+      submit: string;
+      submitting: string;
+      cancel: string;
+      submittedNote: string;
+      errorMissingConfig: string;
+      errorGeneric: string;
+      stayKindRecent: string;
+    };
   };
   availability: {
     title: string;
@@ -170,9 +220,12 @@ type Dict = {
     legendPast: string;
   };
   map: {
-    title: string;
-    privacyHint: string; // "Zone approximative (~{n} m)"
+    title: string;             // section heading - "Où se situe le logement"
+    privacyHint: string;       // "Zone approximative (~{n} m)"
     noLocation: string;
+    gettingAroundTitle: string; // modal subsection - "Se déplacer" / "Getting around"
+    showMore: string;
+    showLess: string;
   };
   rules: {
     sectionTitle: string;
@@ -270,19 +323,19 @@ export const dictionaries: Record<Locale, Dict> = {
       sectionTitle: "Nos meilleures propriétés",
       bookingSimpleTitle: "La réservation simplifiée",
       bookingSimpleSubtitle:
-        "Trois étapes entre la recherche et les clés en main — et une vraie personne au bout du fil quand vous en avez besoin.",
+        "Trois étapes entre la recherche et les clés en main - et une vraie personne au bout du fil quand vous en avez besoin.",
       stepCuratedTitle: "Logements sélectionnés",
       stepCuratedBody:
         "Chaque propriété est visitée et approuvée avant publication. Aucune surprise à l'arrivée.",
       stepCancelTitle: "Annulation gratuite",
       stepCancelBody:
-        "Les plans changent. Annulez jusqu'à 7 jours avant l'arrivée sur la plupart des séjours — sans question.",
+        "Les plans changent. Annulez jusqu'à 7 jours avant l'arrivée sur la plupart des séjours - sans question.",
       stepConciergeTitle: "Conciergerie locale",
       stepConciergeBody:
         "Un vrai local sur WhatsApp, du moment de la réservation jusqu'à votre départ.",
       closerTitle: "Logez-vous au plus près de la ville que vous venez visiter",
       closerBody:
-        "Des riads dans la Médina aux villas avec jardin de la Palmeraie, nos adresses ont un point commun : vous franchissez la porte et vous y êtes déjà. Pas de longues navettes en taxi, pas de bulles touristiques — juste la ville.",
+        "Des riads dans la Médina aux villas avec jardin de la Palmeraie, nos adresses ont un point commun : vous franchissez la porte et vous y êtes déjà. Pas de longues navettes en taxi, pas de bulles touristiques - juste la ville.",
       closerCta: "Voir toutes les propriétés",
     },
     listings: {
@@ -316,10 +369,15 @@ export const dictionaries: Record<Locale, Dict> = {
       washer: "Machine à laver",
       concierge: "Conciergerie",
       tennis: "Tennis",
+      bbq: "Barbecue",
+      housekeeping: "Ménage quotidien",
+      elevator: "Ascenseur",
+      chef: "Chef sur demande",
+      selfCheckIn: "Arrivée autonome",
     },
     footer: {
       blurb:
-        "Une sélection soignée de logements à Marrakech — riads, villas et appartements choisis pour leur design, leur confort et l'accueil chaleureux de leurs hôtes.",
+        "Une sélection soignée de logements à Marrakech - riads, villas et appartements choisis pour leur design, leur confort et l'accueil chaleureux de leurs hôtes.",
       explore: "Explorer",
       allStays: "Toutes les propriétés",
       riads: "Riads",
@@ -338,7 +396,21 @@ export const dictionaries: Record<Locale, Dict> = {
       save: "Enregistrer",
       viewAllPhotos: "Voir les {n} photos",
       aboutTitle: "À propos de cet endroit",
+      aboutModalTitle: "À propos de ce logement",
       amenitiesTitle: "Ce que cet endroit offre",
+      amenitiesModalTitle: "Ce que propose ce logement",
+      amenityCategories: {
+        bathroom: "Salle de bain",
+        bedroom: "Chambre et linge",
+        entertainment: "Divertissement",
+        heatingCooling: "Chauffage et climatisation",
+        internet: "Internet et bureau",
+        kitchen: "Cuisine et salle à manger",
+        outdoor: "Caractéristiques de l'extérieur",
+        parking: "Stationnement",
+        services: "Services",
+        other: "Autres",
+      },
       showAllAmenities: "Voir les {n} équipements",
       showLess: "Voir moins",
       rulesTitle: "Règlement intérieur",
@@ -376,8 +448,8 @@ export const dictionaries: Record<Locale, Dict> = {
         "Sélectionnez les dates et le nombre de personnes pour voir le prix total par nuit",
       sendRequest: "Envoyer une demande",
       requestPrefill:
-        "Bonjour NEXTWIN, je souhaite des informations sur {property} (du {from} au {to}, {guests} personnes). Merci !",
-      noChargeYet: "Aucun débit pour le moment — confirmation instantanée par email.",
+        "Bonjour NEXTWIN,\n\nJe souhaite réserver :\n\n🏡 {property}\n📅 Du {from} au {to} ({nights} {nightLabel})\n👥 {guests} personnes\n\n💶 Tarif : {pricePerNight}/nuit\n💰 Total : {total}\n\nMerci de me confirmer la disponibilité.",
+      noChargeYet: "Aucun débit pour le moment - confirmation instantanée par email.",
       cleaningFee: "Frais de ménage",
       serviceFee: "Frais de service",
       total: "Total",
@@ -389,6 +461,43 @@ export const dictionaries: Record<Locale, Dict> = {
     reviews: {
       showAll: "Voir les {n} avis",
       reviewsLabel: "avis",
+      guestFavourite: "Logement préféré",
+      guestFavouriteDescription:
+        "Ce logement est un coup de cœur des voyageurs, fondé sur les notes, les commentaires et la fiabilité.",
+      overallRating: "Note globale",
+      leaveReviewCta: "Laisser un avis",
+      pendingBadge: "En attente de validation",
+      showMore: "Lire la suite",
+      showLess: "Réduire",
+      categories: {
+        cleanliness: "Propreté",
+        accuracy: "Exactitude",
+        checkin: "Arrivée",
+        communication: "Communication",
+        location: "Emplacement",
+        value: "Rapport qualité-prix",
+      },
+      form: {
+        title: "Notez votre séjour",
+        subtitle:
+          "Vos notes par catégorie aident les futurs voyageurs à choisir. La note globale est la moyenne de vos sélections.",
+        firstName: "Votre prénom",
+        city: "Ville (facultatif)",
+        reviewLabel: "Votre avis",
+        reviewPlaceholder:
+          "Qu'avez-vous aimé ? Qu'est-ce qui pourrait être amélioré ?",
+        remainingChars: "Au moins 20 caractères - {n} restants",
+        submit: "Envoyer mon avis",
+        submitting: "Envoi…",
+        cancel: "Annuler",
+        submittedNote:
+          "Votre avis sera ajouté à la sélection publique après vérification par la conciergerie. Il restera visible pour vous en attendant.",
+        errorMissingConfig:
+          "Configuration manquante côté serveur. Réessayez plus tard.",
+        errorGeneric:
+          "Impossible d'envoyer votre avis. Vérifiez votre connexion et réessayez.",
+        stayKindRecent: "Séjour récent",
+      },
     },
     availability: {
       title: "Jours disponibles",
@@ -397,9 +506,12 @@ export const dictionaries: Record<Locale, Dict> = {
       legendPast: "Passé",
     },
     map: {
-      title: "Emplacement",
+      title: "Où se situe le logement",
       privacyHint: "Zone approximative (~{n} m)",
       noLocation: "Adresse exacte communiquée après confirmation.",
+      gettingAroundTitle: "Se déplacer",
+      showMore: "Lire la suite",
+      showLess: "Réduire",
     },
     rules: {
       sectionTitle: "Bon à savoir",
@@ -439,18 +551,18 @@ export const dictionaries: Record<Locale, Dict> = {
     about: {
       metaTitle: "À propos",
       metaDescription:
-        "Pourquoi NEXTWIN existe — et comment nous choisissons les logements proposés sur la plateforme.",
+        "Pourquoi NEXTWIN existe - et comment nous choisissons les logements proposés sur la plateforme.",
       heroEyebrow: "À propos de NEXTWIN",
       heroTitle: "Nous choisissons les logements que nous enverrions à nos amis.",
       heroSubtitle:
         "Pas de listes superflues, pas d'inventaire gonflé. Chaque propriété sur NEXTWIN est visitée, vérifiée, et associée à un hôte qui répond vraiment.",
       storyTitle: "Construit à Marrakech, par des gens qui y vivent.",
       storyP1:
-        "NEXTWIN est né d'une frustration simple : les amis de passage à Marrakech finissaient dans des endroits qui ne ressemblaient en rien aux photos. Nous avons donc commencé une petite liste de riads, villas et appartements que nous recommandions vraiment — des propriétaires en qui nous avions confiance, des portes auxquelles nous avions personnellement frappé, des hôtes qui décrochaient le téléphone.",
+        "NEXTWIN est né d'une frustration simple : les amis de passage à Marrakech finissaient dans des endroits qui ne ressemblaient en rien aux photos. Nous avons donc commencé une petite liste de riads, villas et appartements que nous recommandions vraiment - des propriétaires en qui nous avions confiance, des portes auxquelles nous avions personnellement frappé, des hôtes qui décrochaient le téléphone.",
       storyP2:
         "Trois ans plus tard, la liste reste petite à dessein. Nous préférons quatre-vingts logements que nous connaissons par cœur plutôt que huit mille que nous n'avons jamais vus. Si un endroit cesse de nous convenir, il est retiré. Si un hôte cesse de répondre dans l'heure, il est retiré aussi.",
       storyP3:
-        "Nous ne faisons qu'une chose — nous vous aidons à trouver le bon endroit où séjourner à Marrakech, et nous aidons les bons hôtes à trouver de bons clients. C'est tout.",
+        "Nous ne faisons qu'une chose - nous vous aidons à trouver le bon endroit où séjourner à Marrakech, et nous aidons les bons hôtes à trouver de bons clients. C'est tout.",
       pillarsTitle: "Comment nous choisissons les propriétés",
       pillarsSubtitle: "Quatre vérifications que chaque logement doit passer avant d'être en ligne.",
       pillar1Title: "Une vraie adresse",
@@ -507,19 +619,19 @@ export const dictionaries: Record<Locale, Dict> = {
       sectionTitle: "Our best properties",
       bookingSimpleTitle: "Booking made simple",
       bookingSimpleSubtitle:
-        "Three steps from search to keys-in-hand — with a real person on call when you need one.",
+        "Three steps from search to keys-in-hand - with a real person on call when you need one.",
       stepCuratedTitle: "Curated stays",
       stepCuratedBody:
         "Every property is visited and approved before it goes online. No surprises on arrival.",
       stepCancelTitle: "Free cancellation",
       stepCancelBody:
-        "Plans change. Cancel up to 7 days before arrival on most stays — no questions asked.",
+        "Plans change. Cancel up to 7 days before arrival on most stays - no questions asked.",
       stepConciergeTitle: "Local concierge",
       stepConciergeBody:
         "A real local on WhatsApp from the moment you book to the day you fly home.",
       closerTitle: "Stay closer to the city you came for",
       closerBody:
-        "From riads inside the Medina to garden villas in the Palmeraie, our places are chosen for the same thing: you walk out the door and you're already there. No long taxi transfers, no resort bubbles — just the city.",
+        "From riads inside the Medina to garden villas in the Palmeraie, our places are chosen for the same thing: you walk out the door and you're already there. No long taxi transfers, no resort bubbles - just the city.",
       closerCta: "Browse all stays",
     },
     listings: {
@@ -553,10 +665,15 @@ export const dictionaries: Record<Locale, Dict> = {
       washer: "Washer",
       concierge: "Concierge",
       tennis: "Tennis",
+      bbq: "BBQ",
+      housekeeping: "Daily housekeeping",
+      elevator: "Elevator",
+      chef: "Optional chef",
+      selfCheckIn: "Self check-in",
     },
     footer: {
       blurb:
-        "A curated selection of stays in Marrakech — riads, villas and apartments chosen for their design, comfort, and the warm welcome of their hosts.",
+        "A curated selection of stays in Marrakech - riads, villas and apartments chosen for their design, comfort, and the warm welcome of their hosts.",
       explore: "Browse",
       allStays: "All properties",
       riads: "Riads",
@@ -575,7 +692,21 @@ export const dictionaries: Record<Locale, Dict> = {
       save: "Save",
       viewAllPhotos: "View all {n} photos",
       aboutTitle: "About this place",
+      aboutModalTitle: "About this home",
       amenitiesTitle: "What this place offers",
+      amenitiesModalTitle: "What this home offers",
+      amenityCategories: {
+        bathroom: "Bathroom",
+        bedroom: "Bedroom and laundry",
+        entertainment: "Entertainment",
+        heatingCooling: "Heating and cooling",
+        internet: "Internet and office",
+        kitchen: "Kitchen and dining",
+        outdoor: "Outdoor",
+        parking: "Parking and facilities",
+        services: "Services",
+        other: "Other",
+      },
       showAllAmenities: "Show all {n} amenities",
       showLess: "Show less",
       rulesTitle: "House rules",
@@ -612,8 +743,8 @@ export const dictionaries: Record<Locale, Dict> = {
       sheetIntro: "Select dates and guest count to see the total price per night",
       sendRequest: "Send a request",
       requestPrefill:
-        "Hello NEXTWIN, I'd like information on {property} (from {from} to {to}, {guests} guests). Thanks!",
-      noChargeYet: "You won't be charged yet — instant confirmation by email.",
+        "Hello NEXTWIN,\n\nI'd like to book:\n\n🏡 {property}\n📅 From {from} to {to} ({nights} {nightLabel})\n👥 {guests} guests\n\n💶 Rate: {pricePerNight}/night\n💰 Total: {total}\n\nPlease confirm availability.",
+      noChargeYet: "You won't be charged yet - instant confirmation by email.",
       cleaningFee: "Cleaning fee",
       serviceFee: "Service fee",
       total: "Total",
@@ -625,6 +756,43 @@ export const dictionaries: Record<Locale, Dict> = {
     reviews: {
       showAll: "Show all {n} reviews",
       reviewsLabel: "reviews",
+      guestFavourite: "Guest favorite",
+      guestFavouriteDescription:
+        "This home is a guest favorite based on ratings, reviews, and reliability.",
+      overallRating: "Overall rating",
+      leaveReviewCta: "Leave a review",
+      pendingBadge: "Pending approval",
+      showMore: "Read more",
+      showLess: "Read less",
+      categories: {
+        cleanliness: "Cleanliness",
+        accuracy: "Accuracy",
+        checkin: "Check-in",
+        communication: "Communication",
+        location: "Location",
+        value: "Value",
+      },
+      form: {
+        title: "Rate your stay",
+        subtitle:
+          "Your category scores help future guests choose. The overall rating is the average of your selections.",
+        firstName: "Your first name",
+        city: "City (optional)",
+        reviewLabel: "Your review",
+        reviewPlaceholder:
+          "What did you love? What could be improved?",
+        remainingChars: "At least 20 characters - {n} remaining",
+        submit: "Send my review",
+        submitting: "Sending…",
+        cancel: "Cancel",
+        submittedNote:
+          "Your review will be added to the public selection after verification by the concierge. It stays visible to you in the meantime.",
+        errorMissingConfig:
+          "Server configuration missing. Please try again later.",
+        errorGeneric:
+          "Couldn't send your review. Check your connection and try again.",
+        stayKindRecent: "Recent stay",
+      },
     },
     availability: {
       title: "Available days",
@@ -633,9 +801,12 @@ export const dictionaries: Record<Locale, Dict> = {
       legendPast: "Past",
     },
     map: {
-      title: "Location",
+      title: "Where you'll be",
       privacyHint: "Approximate area (~{n} m)",
       noLocation: "Exact address shared after confirmation.",
+      gettingAroundTitle: "Getting around",
+      showMore: "Read more",
+      showLess: "Read less",
     },
     rules: {
       sectionTitle: "Good to know",
@@ -674,18 +845,18 @@ export const dictionaries: Record<Locale, Dict> = {
     about: {
       metaTitle: "About",
       metaDescription:
-        "Why NEXTWIN exists — and how we choose the stays we put on the platform.",
+        "Why NEXTWIN exists - and how we choose the stays we put on the platform.",
       heroEyebrow: "About NEXTWIN",
       heroTitle: "We choose the stays we'd send our friends to.",
       heroSubtitle:
         "No filler listings, no padded inventory. Every property on NEXTWIN is visited, vetted, and matched with a host who actually answers the door.",
       storyTitle: "Built in Marrakech, by people who live here.",
       storyP1:
-        "NEXTWIN started with a simple frustration: friends visiting Marrakech kept ending up in places that looked nothing like the photos. So we started a small list of riads, villas, and apartments we'd actually recommend — owners we trusted, doors we'd personally knocked on, hosts who picked up the phone.",
+        "NEXTWIN started with a simple frustration: friends visiting Marrakech kept ending up in places that looked nothing like the photos. So we started a small list of riads, villas, and apartments we'd actually recommend - owners we trusted, doors we'd personally knocked on, hosts who picked up the phone.",
       storyP2:
         "Three years on, the list is still small on purpose. We'd rather have eighty stays we know inside out than eight thousand we've never seen. If a place stops feeling right, it comes off. If a host stops replying within an hour, they're off too.",
       storyP3:
-        "We do one thing — we help you find the right place to stay in Marrakech, and we help the right hosts find good guests. That's it.",
+        "We do one thing - we help you find the right place to stay in Marrakech, and we help the right hosts find good guests. That's it.",
       pillarsTitle: "How we choose properties",
       pillarsSubtitle: "Four checks every place has to pass before it goes online.",
       pillar1Title: "A real address",
@@ -742,7 +913,7 @@ export const dictionaries: Record<Locale, Dict> = {
       sectionTitle: "أفضل عقاراتنا",
       bookingSimpleTitle: "حجز مبسط",
       bookingSimpleSubtitle:
-        "ثلاث خطوات بين البحث وتسلّم المفاتيح — وشخص حقيقي يجيبك عند الحاجة.",
+        "ثلاث خطوات بين البحث وتسلّم المفاتيح - وشخص حقيقي يجيبك عند الحاجة.",
       stepCuratedTitle: "إقامات منتقاة",
       stepCuratedBody:
         "نزور كل عقار ونوافق عليه قبل نشره. لا مفاجآت عند الوصول.",
@@ -754,7 +925,7 @@ export const dictionaries: Record<Locale, Dict> = {
         "محلي حقيقي على واتساب من لحظة الحجز إلى يوم المغادرة.",
       closerTitle: "أقم في قلب المدينة التي جئت لزيارتها",
       closerBody:
-        "من رياضات المدينة العتيقة إلى فلل النخيل، عقاراتنا تجمعها فكرة واحدة: تخطو خطوة وتجد نفسك في قلب المدينة. بدون نقل طويل، بدون فقاعات سياحية — فقط المدينة.",
+        "من رياضات المدينة العتيقة إلى فلل النخيل، عقاراتنا تجمعها فكرة واحدة: تخطو خطوة وتجد نفسك في قلب المدينة. بدون نقل طويل، بدون فقاعات سياحية - فقط المدينة.",
       closerCta: "تصفح كل العقارات",
     },
     listings: {
@@ -788,10 +959,15 @@ export const dictionaries: Record<Locale, Dict> = {
       washer: "غسالة",
       concierge: "كونسيرج",
       tennis: "تنس",
+      bbq: "شواء",
+      housekeeping: "خدمة تنظيف يومية",
+      elevator: "مصعد",
+      chef: "طاهٍ عند الطلب",
+      selfCheckIn: "تسجيل وصول ذاتي",
     },
     footer: {
       blurb:
-        "تشكيلة منتقاة من الإقامات في مراكش — رياضات وفلل وشقق مختارة لأناقتها وراحتها وحُسن استقبال مستضيفيها.",
+        "تشكيلة منتقاة من الإقامات في مراكش - رياضات وفلل وشقق مختارة لأناقتها وراحتها وحُسن استقبال مستضيفيها.",
       explore: "استكشف",
       allStays: "كل العقارات",
       riads: "الرياضات",
@@ -810,7 +986,21 @@ export const dictionaries: Record<Locale, Dict> = {
       save: "حفظ",
       viewAllPhotos: "عرض جميع الصور ({n})",
       aboutTitle: "حول هذا المكان",
+      aboutModalTitle: "حول هذا المسكن",
       amenitiesTitle: "ما يقدمه هذا المكان",
+      amenitiesModalTitle: "ما يقدمه هذا المسكن",
+      amenityCategories: {
+        bathroom: "الحمام",
+        bedroom: "غرفة النوم والغسيل",
+        entertainment: "الترفيه",
+        heatingCooling: "التدفئة والتكييف",
+        internet: "الإنترنت والمكتب",
+        kitchen: "المطبخ وغرفة الطعام",
+        outdoor: "ميزات خارجية",
+        parking: "موقف السيارات",
+        services: "الخدمات",
+        other: "أخرى",
+      },
       showAllAmenities: "عرض جميع المرافق ({n})",
       showLess: "عرض أقل",
       rulesTitle: "قواعد المنزل",
@@ -847,8 +1037,8 @@ export const dictionaries: Record<Locale, Dict> = {
       sheetIntro: "اختر التواريخ وعدد الأشخاص لرؤية السعر الإجمالي لكل ليلة",
       sendRequest: "أرسل طلبًا",
       requestPrefill:
-        "مرحباً NEXTWIN، أود الحصول على معلومات بخصوص {property} (من {from} إلى {to}، {guests} أشخاص). شكراً!",
-      noChargeYet: "لا توجد رسوم حتى الآن — تأكيد فوري عبر البريد الإلكتروني.",
+        "مرحباً NEXTWIN،\n\nأرغب في الحجز:\n\n🏡 {property}\n📅 من {from} إلى {to} ({nights} {nightLabel})\n👥 {guests} أشخاص\n\n💶 السعر: {pricePerNight}/ليلة\n💰 الإجمالي: {total}\n\nيرجى تأكيد التوفر.",
+      noChargeYet: "لا توجد رسوم حتى الآن - تأكيد فوري عبر البريد الإلكتروني.",
       cleaningFee: "رسوم التنظيف",
       serviceFee: "رسوم الخدمة",
       total: "المجموع",
@@ -860,6 +1050,40 @@ export const dictionaries: Record<Locale, Dict> = {
     reviews: {
       showAll: "عرض جميع التقييمات ({n})",
       reviewsLabel: "تقييم",
+      guestFavourite: "المسكن المفضل",
+      guestFavouriteDescription:
+        "هذا المسكن من المفضلين لدى المسافرين، بناءً على التقييمات والتعليقات والموثوقية.",
+      overallRating: "التقييم العام",
+      leaveReviewCta: "اترك تقييماً",
+      pendingBadge: "في انتظار التأكيد",
+      showMore: "عرض المزيد",
+      showLess: "عرض أقل",
+      categories: {
+        cleanliness: "النظافة",
+        accuracy: "الدقة",
+        checkin: "الوصول",
+        communication: "التواصل",
+        location: "الموقع",
+        value: "القيمة مقابل السعر",
+      },
+      form: {
+        title: "قيّم إقامتك",
+        subtitle:
+          "تساعد تقييماتك حسب الفئة المسافرين في الاختيار. التقييم العام هو متوسط اختياراتك.",
+        firstName: "اسمك",
+        city: "المدينة (اختياري)",
+        reviewLabel: "تعليقك",
+        reviewPlaceholder: "ما الذي أعجبك؟ ما الذي يمكن تحسينه؟",
+        remainingChars: "20 حرفاً على الأقل - {n} متبقية",
+        submit: "إرسال تعليقي",
+        submitting: "جارٍ الإرسال…",
+        cancel: "إلغاء",
+        submittedNote:
+          "ستتم إضافة تعليقك إلى المجموعة العامة بعد التحقق من قبل خدمة الكونسيرج. يبقى مرئياً لك في غضون ذلك.",
+        errorMissingConfig: "إعدادات الخادم مفقودة. حاول مرة أخرى لاحقاً.",
+        errorGeneric: "تعذر إرسال تعليقك. تحقق من اتصالك وحاول مرة أخرى.",
+        stayKindRecent: "إقامة حديثة",
+      },
     },
     availability: {
       title: "الأيام المتاحة",
@@ -868,9 +1092,12 @@ export const dictionaries: Record<Locale, Dict> = {
       legendPast: "ماضٍ",
     },
     map: {
-      title: "الموقع",
+      title: "أين ستقيم",
       privacyHint: "منطقة تقريبية (~{n} م)",
       noLocation: "العنوان الدقيق يُرسل بعد التأكيد.",
+      gettingAroundTitle: "التنقل",
+      showMore: "عرض المزيد",
+      showLess: "عرض أقل",
     },
     rules: {
       sectionTitle: "معلومات مفيدة",
@@ -908,18 +1135,18 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     about: {
       metaTitle: "من نحن",
-      metaDescription: "لماذا وُجدت NEXTWIN — وكيف نختار الإقامات التي نضعها على المنصة.",
+      metaDescription: "لماذا وُجدت NEXTWIN - وكيف نختار الإقامات التي نضعها على المنصة.",
       heroEyebrow: "حول NEXTWIN",
       heroTitle: "نختار الإقامات التي سنرسل إليها أصدقاءنا.",
       heroSubtitle:
         "لا قوائم حشو، ولا مخزون منتفخ. كل عقار على NEXTWIN يُزار، ويُتحقق منه، ويُرتبط بمضيف يفتح الباب فعلاً.",
       storyTitle: "بُنيت في مراكش، من قبل أناس يعيشون هنا.",
       storyP1:
-        "بدأت NEXTWIN من إحباط بسيط: الأصدقاء الذين يزورون مراكش كانوا ينتهون في أماكن لا تشبه الصور إطلاقاً. فبدأنا قائمة صغيرة من الرياضات والفلل والشقق التي نوصي بها فعلاً — مالكون نثق بهم، أبواب طرقناها بأنفسنا، مضيفون يردون على الهاتف.",
+        "بدأت NEXTWIN من إحباط بسيط: الأصدقاء الذين يزورون مراكش كانوا ينتهون في أماكن لا تشبه الصور إطلاقاً. فبدأنا قائمة صغيرة من الرياضات والفلل والشقق التي نوصي بها فعلاً - مالكون نثق بهم، أبواب طرقناها بأنفسنا، مضيفون يردون على الهاتف.",
       storyP2:
         "بعد ثلاث سنوات، القائمة لا تزال صغيرة عمداً. نفضّل ثمانين إقامة نعرفها جيداً على ثمانية آلاف لم نرها أبداً. إذا توقف مكان عن الإحساس بالصواب، يُرفع. إذا توقف مضيف عن الرد خلال ساعة، يُرفع أيضاً.",
       storyP3:
-        "نقوم بشيء واحد — نساعدك في العثور على المكان المناسب للإقامة في مراكش، ونساعد المضيفين الجيدين في العثور على ضيوف جيدين. هذا كل شيء.",
+        "نقوم بشيء واحد - نساعدك في العثور على المكان المناسب للإقامة في مراكش، ونساعد المضيفين الجيدين في العثور على ضيوف جيدين. هذا كل شيء.",
       pillarsTitle: "كيف نختار العقارات",
       pillarsSubtitle: "أربعة فحوصات يجب أن يجتازها كل مكان قبل أن يصبح متاحاً عبر الإنترنت.",
       pillar1Title: "عنوان حقيقي",

@@ -1,12 +1,12 @@
 // Seed the SQLite database from the in-memory PROPERTIES array so the public
 // site keeps working immediately after the admin panel is wired up. Re-runs
-// are idempotent — uses upsert keyed on slug.
+// are idempotent - uses upsert keyed on slug.
 import { PrismaClient } from "@prisma/client";
 import { PROPERTIES } from "../src/lib/properties";
 
 const prisma = new PrismaClient();
 
-// Approximate Marrakech zone coordinates per slug — used for the public
+// Approximate Marrakech zone coordinates per slug - used for the public
 // page's privacy-zone map circle. These are intentionally area-level (not
 // the exact street) so the rendered ~200m circle reads as "around here"
 // without leaking the address. Admin can fine-tune in /admin/properties/[id].
@@ -26,49 +26,49 @@ const COORDS_BY_SLUG: Record<string, { lat: number; lng: number; radius?: number
 // labels surfaced on the public site under the FR locale (default).
 const TITLES_BY_SLUG: Record<string, { fr: string; en: string; ar: string }> = {
   "riad-jardin-secret": {
-    fr: "Riad au Jardin Secret — Piscine & Cour de Palmiers",
+    fr: "Riad au Jardin Secret - Piscine & Cour de Palmiers",
     en: "Hidden Garden Riad with Pool & Palm Courtyard",
-    ar: "رياض الحديقة السرية — مسبح وفناء النخيل",
+    ar: "رياض الحديقة السرية - مسبح وفناء النخيل",
   },
   "villa-palmeraie-oasis": {
-    fr: "Villa Palmeraie — Piscine Chauffée & Jardin Privé",
+    fr: "Villa Palmeraie - Piscine Chauffée & Jardin Privé",
     en: "Palmeraie Villa with Heated Pool & Private Garden",
-    ar: "فيلا النخيل — مسبح مُسخّن وحديقة خاصة",
+    ar: "فيلا النخيل - مسبح مُسخّن وحديقة خاصة",
   },
   "gueliz-modern-loft": {
-    fr: "Loft Design à Gueliz — À 8 min de Majorelle",
-    en: "Designer Loft in Gueliz — 8 min from Majorelle",
-    ar: "لوفت تصميم في جليز — 8 دقائق من ماجوريل",
+    fr: "Loft Design à Gueliz - À 8 min de Majorelle",
+    en: "Designer Loft in Gueliz - 8 min from Majorelle",
+    ar: "لوفت تصميم في جليز - 8 دقائق من ماجوريل",
   },
   "riad-medina-rooftop": {
-    fr: "Riad Médina — Rooftop Panoramique & Suites Ensuite",
+    fr: "Riad Médina - Rooftop Panoramique & Suites Ensuite",
     en: "Medina Riad with Panoramic Rooftop & Ensuite Suites",
-    ar: "رياض المدينة — سطح بانورامي وأجنحة كاملة",
+    ar: "رياض المدينة - سطح بانورامي وأجنحة كاملة",
   },
   "villa-atlas-views": {
-    fr: "Villa Vue Atlas — Piscine à Débordement & Tennis",
+    fr: "Villa Vue Atlas - Piscine à Débordement & Tennis",
     en: "Atlas-View Villa with Infinity Pool & Tennis Court",
-    ar: "فيلا بإطلالة أطلس — مسبح لا متناهٍ وملعب تنس",
+    ar: "فيلا بإطلالة أطلس - مسبح لا متناهٍ وملعب تنس",
   },
   "kasbah-style-apartment": {
-    fr: "Appartement Kasbah — Terrasse Privée près du Palais Royal",
+    fr: "Appartement Kasbah - Terrasse Privée près du Palais Royal",
     en: "Kasbah-Style Apartment with Private Terrace near Royal Palace",
-    ar: "شقة كازابة — تراس خاص قرب القصر الملكي",
+    ar: "شقة كازابة - تراس خاص قرب القصر الملكي",
   },
   "riad-citrus-courtyard": {
-    fr: "Riad Cour aux Orangers — Petit-déjeuner Inclus",
+    fr: "Riad Cour aux Orangers - Petit-déjeuner Inclus",
     en: "Citrus-Courtyard Riad with Daily Breakfast",
-    ar: "رياض فناء البرتقال — مع الإفطار اليومي",
+    ar: "رياض فناء البرتقال - مع الإفطار اليومي",
   },
   "villa-bohemian-retreat": {
-    fr: "Villa Bohème — Hammam Privé & Piscine d'Eau Salée",
+    fr: "Villa Bohème - Hammam Privé & Piscine d'Eau Salée",
     en: "Bohemian Villa Retreat with Hammam & Salt-Water Pool",
-    ar: "فيلا بوهيمية — حمام خاص ومسبح بمياه مالحة",
+    ar: "فيلا بوهيمية - حمام خاص ومسبح بمياه مالحة",
   },
 };
 
 async function main() {
-  // Settings — single row, id = 1
+  // Settings - single row, id = 1
   await prisma.settings.upsert({
     where: { id: 1 },
     update: {},

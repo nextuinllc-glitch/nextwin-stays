@@ -27,3 +27,19 @@ export async function getHeroSettings(): Promise<HeroSettings> {
     videoMobile: s.heroVideoMobile,
   };
 }
+
+// Fee config consumed by the booking widget + checkout summary. Lives
+// on the single Settings row so the admin can edit it from the Settings
+// page — every property uses the same fees site-wide.
+export type FeeSettings = {
+  cleaningFee: number;
+  serviceFeeRate: number;
+};
+
+export async function getFeeSettings(): Promise<FeeSettings> {
+  const s = await getSettings();
+  return {
+    cleaningFee: s.cleaningFee ?? 0,
+    serviceFeeRate: s.serviceFeeRate ?? 0,
+  };
+}

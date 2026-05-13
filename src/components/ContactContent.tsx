@@ -120,8 +120,8 @@ export function ContactContent({ pageContent }: Props) {
             }
             .field-base::placeholder { color: #7A8497; }
             .field-base:focus {
-              border-color: #B85432;
-              box-shadow: 0 0 0 3px rgba(184, 84, 50, 0.18);
+              border-color: #FF385C;
+              box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.18);
             }
           `}</style>
         </form>

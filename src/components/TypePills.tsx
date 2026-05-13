@@ -10,11 +10,15 @@ type Props = {
   pills: Pill[];
 };
 
+// Airbnb / Menara active-pill style: solid ink with white text for ALL
+// filters. Keeps the magenta brand colour reserved for the primary CTA
+// (the "Voir sur la carte" button below). Map kept type-keyed in case
+// per-type styling needs to come back later.
 const ACTIVE_BG: Record<string, string> = {
-  all: "bg-brand-600 text-white border-brand-600",
-  villa: "bg-violet-500 text-white border-violet-500",
-  riad: "bg-amber-600 text-white border-amber-600",
-  apartment: "bg-sky-400 text-white border-sky-400",
+  all: "bg-ink text-white border-ink",
+  villa: "bg-ink text-white border-ink",
+  riad: "bg-ink text-white border-ink",
+  apartment: "bg-ink text-white border-ink",
 };
 
 export function TypePills({ pills }: Props) {

@@ -21,6 +21,7 @@ import {
 import type { Property } from "@/lib/properties";
 import { PROPERTY_TYPE_LABEL, PROPERTY_TYPE_BADGE_CLASS } from "@/lib/properties";
 import { cn, formatPrice, nightsBetween } from "@/lib/utils";
+import { getAverageRating, getReviewCount } from "@/lib/reviews-data";
 import { Logo } from "./Logo";
 
 type Initial = {
@@ -29,21 +30,27 @@ type Initial = {
   guests: number;
 };
 
+type FeeSettings = { cleaningFee: number; serviceFeeRate: number };
+
 type Props = {
   property: Property;
   initial: Initial;
+  fees?: FeeSettings;
 };
 
 type PaymentMethod = "bank" | "cash";
 
-const SERVICE_FEE_RATE = 0.07;
-const CLEANING_FEE = 45;
+// Default fees when the parent doesn't pass any — keeps the form
+// safe to mount in isolation. Real values come from Supabase Settings
+// via the `fees` prop (admin-editable, defaults to zero).
+const DEFAULT_FEES: FeeSettings = { cleaningFee: 0, serviceFeeRate: 0 };
 
 // Concierge WhatsApp number used for finalising bookings — replace with the
 // real Marrakech ops number in production.
 const CONCIERGE_PHONE = "+212600000000";
 
-export function CheckoutForm({ property, initial }: Props) {
+export function CheckoutForm({ property, initial, fees = DEFAULT_FEES }: Props) {
+  const { cleaningFee: CLEANING_FEE, serviceFeeRate: SERVICE_FEE_RATE } = fees;
   // Static export: this page is pre-rendered once per property with empty
   // dates. We hydrate the calendar / guest count from the URL on mount so
   // a deep-link from the BookingWidget lands here pre-filled. `initial`
@@ -320,8 +327,13 @@ export function CheckoutForm({ property, initial }: Props) {
                 </p>
                 <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-ink">
                   <Star className="h-3 w-3 fill-ink text-ink" />
-                  {property.rating.toFixed(2)}
-                  <span className="font-normal text-ink-soft">({property.reviewCount})</span>
+                  {(getReviewCount(property.slug) > 0
+                    ? getAverageRating(property.slug)
+                    : property.rating
+                  ).toFixed(2)}
+                  <span className="font-normal text-ink-soft">
+                    ({getReviewCount(property.slug) || property.reviewCount})
+                  </span>
                 </p>
               </div>
             </div>
@@ -434,8 +446,8 @@ export function CheckoutForm({ property, initial }: Props) {
           /* Marrakech terracotta — same as the brand-500 token. Inline
              so the scoped style still works in print mode without
              Tailwind utility classes loaded. */
-          border-color: #B85432;
-          box-shadow: 0 0 0 3px rgba(184, 84, 50, 0.18);
+          border-color: #FF385C;
+          box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.18);
         }
       `}</style>
       </div>

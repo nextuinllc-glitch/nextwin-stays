@@ -70,8 +70,30 @@ export function AvailabilityInline({ blocked }: Props) {
   const [hover, setHover] = useState<Date | null>(null);
   const months = useMemo(() => [cursor, addMonths(cursor, 1)], [cursor]);
 
-  const from = parseISO(params.get("from"));
-  const to = parseISO(params.get("to"));
+  // Local picked-state. We avoid pushing partial selections to the URL
+  // because every `router.replace` re-renders the whole detail page
+  // (Reviews, Map, etc.) and the lag is very noticeable on click 1.
+  // URL is only written when both ends are picked OR when the user
+  // clears the range — that's the only moment the booking widget /
+  // sticky bar actually need a refresh.
+  const urlFrom = parseISO(params.get("from"));
+  const urlTo = parseISO(params.get("to"));
+  const [localFrom, setLocalFrom] = useState<Date | null>(urlFrom);
+  const [localTo, setLocalTo] = useState<Date | null>(urlTo);
+
+  // Sync local state with the URL when it changes externally (e.g.,
+  // the multi-month popup saves a range). The string keys keep the
+  // effect dependency stable; comparing Date instances would re-fire
+  // every render because parseISO returns fresh objects.
+  const urlFromKey = params.get("from") ?? "";
+  const urlToKey = params.get("to") ?? "";
+  useEffect(() => {
+    setLocalFrom(parseISO(urlFromKey || null));
+    setLocalTo(parseISO(urlToKey || null));
+  }, [urlFromKey, urlToKey]);
+
+  const from = localFrom;
+  const to = localTo;
 
   const blockedSet = useMemo(() => {
     const out = new Set<number>();
@@ -96,7 +118,7 @@ export function AvailabilityInline({ blocked }: Props) {
     return false;
   };
 
-  const writeRange = (f: Date | null, t: Date | null) => {
+  const writeRangeToUrl = (f: Date | null, t: Date | null) => {
     const next = new URLSearchParams(params.toString());
     if (f) next.set("from", isoDay(f));
     else next.delete("from");
@@ -105,24 +127,48 @@ export function AvailabilityInline({ blocked }: Props) {
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   };
 
+  // Picks a new start: instant local state update, URL cleared so the
+  // booking widget shows "Add dates for pricing" again. This is the
+  // hot path that was previously freezing — partial selections now
+  // never touch the URL or re-render parents.
+  const setStart = (day: Date) => {
+    setLocalFrom(day);
+    setLocalTo(null);
+    // Clear any stale completed range from the URL — keeps the sticky
+    // bar honest. Single replace, then nothing until the second click.
+    if (urlFrom || urlTo) writeRangeToUrl(null, null);
+  };
+
+  const setEnd = (start: Date, end: Date) => {
+    setLocalFrom(start);
+    setLocalTo(end);
+    writeRangeToUrl(start, end);
+  };
+
   const handleClick = (day: Date) => {
     if (day.getTime() < today.getTime()) return;
     if (blockedSet.has(day.getTime())) return;
     if (!from || (from && to)) {
-      writeRange(day, null);
+      setStart(day);
       return;
     }
     if (day.getTime() <= from.getTime()) {
-      writeRange(day, null);
+      setStart(day);
       return;
     }
     if (rangeCrossesBlocked(from, day)) {
       // Reset start to clicked day if the proposed range overlaps an
       // existing booking — friendlier than silently rejecting.
-      writeRange(day, null);
+      setStart(day);
       return;
     }
-    writeRange(from, day);
+    setEnd(from, day);
+  };
+
+  const clearDates = () => {
+    setLocalFrom(null);
+    setLocalTo(null);
+    writeRangeToUrl(null, null);
   };
 
   const inRange = (day: Date) => {
@@ -240,7 +286,7 @@ export function AvailabilityInline({ blocked }: Props) {
           {(from || to) && (
             <button
               type="button"
-              onClick={() => writeRange(null, null)}
+              onClick={clearDates}
               className="text-[11px] font-semibold text-brand-700 underline-offset-2 hover:underline"
             >
               {t.search.clearDates}

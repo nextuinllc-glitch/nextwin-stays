@@ -392,11 +392,14 @@ export const PROPERTY_TYPE_LABEL: Record<PropertyType, string> = {
   apartment: "Apartment",
 };
 
-// Per-type accent colors — purple for Villa, sky-blue for Appartement,
-// amber/terracotta for Riad. Used on listing card badges and the listings
-// page filter pills so the eye can scan by type.
+// Airbnb / Menara-style neutral badges — solid ink with white text, same
+// chip for every type. Type is signalled by the label itself ("Villa",
+// "Riad", "Appartement"), not by colour, so the cards stay calm and
+// keep the magenta CTA as the single attention-grabbing accent on the
+// page. Keep the map keyed by type so future per-type styling can be
+// re-introduced without changing the call sites.
 export const PROPERTY_TYPE_BADGE_CLASS: Record<PropertyType, string> = {
-  villa: "bg-violet-500 text-white",
-  apartment: "bg-sky-400 text-white",
-  riad: "bg-amber-600 text-white",
+  villa: "bg-ink text-white",
+  apartment: "bg-ink text-white",
+  riad: "bg-ink text-white",
 };

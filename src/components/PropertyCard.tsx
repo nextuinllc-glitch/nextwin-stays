@@ -3,10 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { Star, ChevronRight, Users, Bed, Bath } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, Users, Bed, Bath } from "lucide-react";
 import type { Property, PropertyType } from "@/lib/properties";
 import { PROPERTY_TYPE_BADGE_CLASS } from "@/lib/properties";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nProvider";
 
 type Props = {
@@ -16,6 +16,13 @@ type Props = {
 
 function shortenKey(a: string): keyof ReturnType<typeof useI18n>["t"]["amenity"] | null {
   const l = a.toLowerCase();
+  // More specific matches first so "Self check-in" doesn't get
+  // swallowed by a broader pattern below.
+  if (l.includes("self check") || l.includes("self-check")) return "selfCheckIn";
+  if (l.includes("housekeeping")) return "housekeeping";
+  if (l.includes("optional chef") || l === "chef") return "chef";
+  if (l.includes("elevator") || l === "lift") return "elevator";
+  if (l === "bbq" || l.includes("barbecue")) return "bbq";
   if (l.includes("pool")) return "pool";
   if (l.includes("kitchen")) return "kitchen";
   if (l.includes("air conditioning")) return "ac";
@@ -66,6 +73,12 @@ export function PropertyCard({ property, priority = false }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const glareRef = useRef<HTMLDivElement>(null);
+  // Swipe-gesture bookkeeping. `touchStartXRef` records the finger's
+  // X on touchstart; `swipedRef` flips true on touchend if the swipe
+  // travelled past the threshold, and stays true just long enough to
+  // cancel the click that would otherwise fire on the wrapping <Link>.
+  const touchStartXRef = useRef<number | null>(null);
+  const swipedRef = useRef(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const wrap = wrapRef.current;
@@ -95,6 +108,49 @@ export function PropertyCard({ property, priority = false }: Props) {
     setIndex((i) => (i + 1) % total);
   };
 
+  const prev = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIndex((i) => (i - 1 + total) % total);
+  };
+
+  // Touch handlers — give phones the same left/right swipe affordance
+  // as the desktop arrow buttons. We use the touchstart X as the anchor,
+  // measure the delta at touchend, and treat anything beyond 40 px as
+  // a swipe. The synthetic click that follows a touchend on a child of
+  // <Link> is suppressed via the swipedRef flag below.
+  const SWIPE_THRESHOLD = 40;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0]?.clientX ?? null;
+    swipedRef.current = false;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const startX = touchStartXRef.current;
+    if (startX == null || total <= 1) return;
+    const endX = e.changedTouches[0]?.clientX;
+    if (endX == null) return;
+    const dx = endX - startX;
+    if (Math.abs(dx) >= SWIPE_THRESHOLD) {
+      swipedRef.current = true;
+      // Right swipe (positive dx) → previous; left swipe → next. Mirrors
+      // the natural "drag the current photo aside to reveal the next".
+      if (dx > 0) setIndex((i) => (i - 1 + total) % total);
+      else setIndex((i) => (i + 1) % total);
+    }
+    touchStartXRef.current = null;
+  };
+  // Suppress the navigation click immediately after a swipe. The mobile
+  // browser fires a synthetic click on touchend even though no real
+  // tap happened; without this guard, every swipe would also open the
+  // property detail page.
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (swipedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      swipedRef.current = false;
+    }
+  };
+
   const topAmenityKeys = pickTopAmenityKeys(property.amenities, 3);
 
   return (
@@ -107,10 +163,13 @@ export function PropertyCard({ property, priority = false }: Props) {
       <Link
         href={`/properties/${property.slug}`}
         className="block focus:outline-none"
+        onClick={handleLinkClick}
       >
         <div
           ref={cardRef}
-          className="relative aspect-[5/4] w-full overflow-hidden rounded-2xl bg-gray-100 shadow-card transition-[transform,box-shadow] duration-200 ease-out [transform-style:preserve-3d] will-change-transform group-hover:shadow-card-hover"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="relative aspect-[20/19] w-full overflow-hidden rounded-2xl bg-gray-100 shadow-card transition-[transform,box-shadow] duration-200 ease-out [transform-style:preserve-3d] touch-pan-y will-change-transform group-hover:shadow-card-hover"
         >
           {property.images.map((img, i) => (
             <div
@@ -158,16 +217,29 @@ export function PropertyCard({ property, priority = false }: Props) {
             <Star className="h-3 w-3 fill-white text-white" />
           </span>
 
-          {/* Carousel right arrow — lifts in Z, fades in on hover */}
+          {/* Carousel arrows — both sides, fade in on desktop hover.
+              Hidden by default on touch devices (the swipe gesture is
+              the affordance there). `aria-label` makes them keyboard
+              and screen-reader navigable. */}
           {total > 1 && (
-            <button
-              onClick={next}
-              aria-label="Next image"
-              className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-ink opacity-0 shadow-md transition-opacity duration-200 group-hover:opacity-100"
-              style={{ transform: "translateZ(50px)" }}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            <>
+              <button
+                onClick={prev}
+                aria-label="Previous image"
+                className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-ink opacity-0 shadow-md transition-opacity duration-200 group-hover:opacity-100"
+                style={{ transform: "translateZ(50px)" }}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={next}
+                aria-label="Next image"
+                className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-ink opacity-0 shadow-md transition-opacity duration-200 group-hover:opacity-100"
+                style={{ transform: "translateZ(50px)" }}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </>
           )}
 
           {/* Dot indicators — lift in Z */}
@@ -220,6 +292,16 @@ export function PropertyCard({ property, priority = false }: Props) {
                 {t.amenity[k as keyof typeof t.amenity]}
               </span>
             ))}
+          </div>
+
+          {/* Price line — bold currency-formatted amount + small muted
+              "per night" suffix. Sits on its own row below the amenity
+              chips as the closing statement of every card. */}
+          <div className="mt-3 flex items-baseline gap-1.5">
+            <span className="text-base font-semibold text-ink">
+              {formatPrice(property.pricePerNight, property.currency as "EUR" | "USD")}
+            </span>
+            <span className="text-sm text-ink-muted">{t.booking.perNight}</span>
           </div>
         </div>
       </Link>

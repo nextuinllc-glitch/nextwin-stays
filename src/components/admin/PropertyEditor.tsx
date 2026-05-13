@@ -782,8 +782,8 @@ export function PropertyEditor({ mode, initial }: Props) {
         }
         .form-input::placeholder { color: #94A3B8; }
         .form-input:focus {
-          border-color: #B85432;
-          box-shadow: 0 0 0 3px rgba(184, 84, 50, 0.15);
+          border-color: #FF385C;
+          box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.15);
         }
       `}</style>
     </div>

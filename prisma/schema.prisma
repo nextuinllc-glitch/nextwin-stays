@@ -209,3 +209,31 @@ model PageContent {
   contentJson String   @default("{}")
   updatedAt   DateTime @updatedAt
 }
+
+// User-submitted reviews — the public form on each property detail
+// page inserts straight into this table via the Supabase anon client.
+// `status` starts at "pending"; the admin queue at /admin/reviews
+// flips it to "approved" or "denied". Only approved rows are mixed
+// into the public reviews list; the submitting user also sees their
+// own pending row via a localStorage-backed lookup.
+//
+// `categoryRatings` is JSON-encoded so we don't need a separate row
+// per category. Shape:
+//   { cleanliness: 5, accuracy: 5, checkin: 4, communication: 5,
+//     location: 5, value: 5 }
+model Review {
+  id              String   @id @default(cuid())
+  propertySlug    String
+  author          String
+  origin          String?
+  body            String
+  rating          Int      @default(5)
+  categoryRatings String   @default("{}")
+  authorImage     String?
+  status          String   @default("pending") // pending | approved | denied
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([propertySlug, status])
+  @@index([status])
+}

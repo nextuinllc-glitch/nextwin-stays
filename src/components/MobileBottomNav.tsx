@@ -12,6 +12,8 @@ import { MobileDatesSheet } from "./MobileDatesSheet";
 // the full top header nav.
 //
 // Hidden on:
+//  - / (home is cinematic — the floating bar steals attention from the
+//    hero video, so we keep the landing screen clean)
 //  - /admin/* (admin panel has its own sidebar)
 //  - /properties/[slug] (the BookingWidget already owns the bottom bar)
 //  - */reserve (checkout has its own sticky CTA)
@@ -20,6 +22,7 @@ export function MobileBottomNav() {
   const [datesOpen, setDatesOpen] = useState(false);
 
   if (
+    pathname === "/" ||
     pathname.startsWith("/admin") ||
     pathname.endsWith("/reserve") ||
     /^\/properties\/[^/]+$/.test(pathname)

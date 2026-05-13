@@ -6,6 +6,7 @@ import {
   getAllPropertySlugs,
   getPropertyBlockedRanges,
 } from "@/lib/property-repo";
+import { getFeeSettings } from "@/lib/settings-repo";
 import { PropertyDetailContent } from "@/components/PropertyDetailContent";
 import {
   SITE_URL,
@@ -79,11 +80,14 @@ export default async function PropertyDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [property, blockedRanges] = await Promise.all([
-    getPropertyBySlug(slug),
-    getPropertyBlockedRanges(slug),
-  ]);
+  // Sequential — the Supabase Transaction pooler is opened with
+  // `connection_limit=1` so Promise.all over three queries blocks on
+  // the pool. Each call here is ~50ms; sequential is ~150ms per page,
+  // which is fine for 16 pre-rendered pages at build time.
+  const property = await getPropertyBySlug(slug);
   if (!property) notFound();
+  const blockedRanges = await getPropertyBlockedRanges(slug);
+  const fees = await getFeeSettings();
 
   // JSON-LD for rich results — injected as a <script> tag rendered on the
   // server. Google reads this on first crawl, no JS execution required.
@@ -102,7 +106,7 @@ export default async function PropertyDetailPage({
           from `?from=&to=` deep links, and static export needs an
           explicit boundary for that. */}
       <Suspense>
-        <PropertyDetailContent property={property} blockedRanges={blockedRanges} />
+        <PropertyDetailContent property={property} blockedRanges={blockedRanges} fees={fees} />
       </Suspense>
     </>
   );

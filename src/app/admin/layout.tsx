@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { LayoutDashboard, Home, LogOut, Settings as SettingsIcon, Globe, CalendarDays, ClipboardList, FileText } from "lucide-react";
+import { LayoutDashboard, Home, LogOut, Settings as SettingsIcon, Globe, CalendarDays, ClipboardList, FileText, Star } from "lucide-react";
 import { getCurrentSession } from "@/lib/auth";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
@@ -65,6 +65,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               accent="emerald"
             >
               Réservations
+            </NavItem>
+            <NavItem
+              href="/admin/reviews"
+              icon={<Star className="h-4 w-4" />}
+              accent="amber"
+            >
+              Avis
             </NavItem>
           </NavGroup>
 
