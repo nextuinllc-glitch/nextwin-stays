@@ -97,12 +97,12 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/30 to-black/55" />
       </div>
 
-      {/* Hero takes 90vh on every breakpoint — leaves a strip of the next
-          section visible at the fold so users see the page is scrollable.
-          `min-h-` (not `h-`) so the content can still grow on very small
-          phones where the wordmark + subtitle + safe-area padding need
-          more room than 90vh would give them. */}
-      <div className="relative flex min-h-[90vh] items-center">
+      {/* Hero is 85vh on phones / 90vh on ≥md — the 5-point trim on
+          mobile keeps Safari's URL bar and home-indicator from cropping
+          the wordmark + scroll-cue chevron at the fold. `min-h-` (not
+          `h-`) so the content can still grow on very small phones
+          where the wordmark + subtitle need more room. */}
+      <div className="relative flex min-h-[85vh] items-center md:min-h-[90vh]">
         <div className="container-page flex w-full flex-col items-center justify-center py-16 text-center sm:py-20 lg:py-24">
           <h1 className="font-display text-6xl font-semibold leading-none tracking-tight text-white drop-shadow-[0_8px_30px_rgba(0,0,0,0.45)] sm:text-7xl lg:text-[128px]">
             NEXT<span className="text-shimmer-blue">WIN</span>
