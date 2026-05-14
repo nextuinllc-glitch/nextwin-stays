@@ -19,12 +19,32 @@ export default async function HomePage() {
   ]);
   return (
     <>
-      {/* Preload hero video bytes in parallel with HTML parsing so the
-          first frame is decode-ready by the time the <video> element
-          mounts — without this hint the browser only starts fetching
-          after the JS bundle hydrates the Hero, which costs ~500ms
-          on a cold load. `media` ensures each device only downloads
-          the file it will actually display. */}
+      {/* Preload the hero poster JPEGs first — these are tiny (≤300KB)
+          and paint instantly as <video poster>, eliminating the dark
+          gap on cold load. `fetchPriority="high"` jumps them ahead of
+          the property thumbnails further down the page. */}
+      {hero.videoPosterDesktop && (
+        <link
+          rel="preload"
+          as="image"
+          href={hero.videoPosterDesktop}
+          fetchPriority="high"
+          media="(min-width: 768px)"
+        />
+      )}
+      {hero.videoPosterMobile && (
+        <link
+          rel="preload"
+          as="image"
+          href={hero.videoPosterMobile}
+          fetchPriority="high"
+          media="(max-width: 767.98px)"
+        />
+      )}
+      {/* Preload the video bytes in parallel so they're decode-ready by
+          the time the <video> element mounts — without this hint the
+          browser only starts fetching after the JS bundle hydrates,
+          which costs ~500ms on a cold load. */}
       {hero.videoDesktop && (
         <link
           rel="preload"

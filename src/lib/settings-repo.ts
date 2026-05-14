@@ -17,6 +17,8 @@ export type HeroSettings = {
   posterImage: string;
   videoDesktop: string | null;
   videoMobile: string | null;
+  videoPosterDesktop: string | null;
+  videoPosterMobile: string | null;
 };
 
 export async function getHeroSettings(): Promise<HeroSettings> {
@@ -25,6 +27,8 @@ export async function getHeroSettings(): Promise<HeroSettings> {
     posterImage: s.heroImage,
     videoDesktop: s.heroVideoDesktop,
     videoMobile: s.heroVideoMobile,
+    videoPosterDesktop: s.heroPosterDesktop,
+    videoPosterMobile: s.heroPosterMobile,
   };
 }
 

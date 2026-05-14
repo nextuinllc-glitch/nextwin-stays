@@ -29,6 +29,8 @@ export function HomeContent({ featured, hero, pageContent }: Props) {
         posterImage={hero.posterImage}
         videoDesktop={hero.videoDesktop}
         videoMobile={hero.videoMobile}
+        videoPosterDesktop={hero.videoPosterDesktop}
+        videoPosterMobile={hero.videoPosterMobile}
       />
 
       {/* Editorial section header — large breathing space, gold-rule

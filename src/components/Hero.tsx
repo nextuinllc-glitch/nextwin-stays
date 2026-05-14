@@ -1,20 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import { ChevronDown } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { useI18n } from "@/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  // Static fallback — also used as the <video poster> so the hero paints
-  // instantly while the video frames stream in.
+  // Static fallback used when no videos are uploaded.
   posterImage: string;
   // Optional uploaded videos. When both are null, the static image is the
   // entire background (no <video> tag is rendered).
   videoDesktop?: string | null;
   videoMobile?: string | null;
+  // First-frame snapshots auto-generated from the videos themselves
+  // (scripts/extract-hero-posters.mjs). Used as `<video poster>` so the
+  // hero paints an image *identical* to frame 0 while the bytes are
+  // still streaming — the handoff from still → motion is invisible.
+  videoPosterDesktop?: string | null;
+  videoPosterMobile?: string | null;
 };
 
 function inferMime(url: string) {
@@ -23,7 +28,13 @@ function inferMime(url: string) {
   return "video/mp4";
 }
 
-export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
+export function Hero({
+  posterImage,
+  videoDesktop,
+  videoMobile,
+  videoPosterDesktop,
+  videoPosterMobile,
+}: Props) {
   const { t } = useI18n();
   const hasVideo = Boolean(videoDesktop || videoMobile);
   // Both ends present? Render two `<video>` elements with mutually-
@@ -34,14 +45,6 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
   // some mobile Safari versions the picker chose the desktop source
   // anyway. The two-video pattern is the only deterministic fix.
   const bothPresent = Boolean(videoDesktop && videoMobile);
-
-  // Fade each video in from `bg-ink` once the first frame is decoded.
-  // We trigger on `loadeddata` (frame 0 ready) rather than `playing`
-  // (motion started) so the fade-in OVERLAPS the brief gap between
-  // bytes arriving and playback kicking in — the user sees a smooth
-  // 200ms fade rather than ~1s of black before video pops in.
-  const [mobileReady, setMobileReady] = useState(false);
-  const [desktopReady, setDesktopReady] = useState(false);
 
   return (
     <section className="relative bg-ink">
@@ -55,12 +58,11 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
                 loop
                 playsInline
                 preload="auto"
+                poster={videoPosterMobile ?? undefined}
                 disablePictureInPicture
                 disableRemotePlayback
-                onLoadedData={() => setMobileReady(true)}
                 className={cn(
-                  "h-full w-full object-cover transition-opacity duration-200 ease-out",
-                  mobileReady ? "opacity-100" : "opacity-0",
+                  "h-full w-full object-cover",
                   // Hide on ≥md ONLY if there's a separate desktop video
                   // to swap in; otherwise the mobile video doubles as
                   // the desktop fallback so we leave it visible.
@@ -77,12 +79,11 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
                 loop
                 playsInline
                 preload="auto"
+                poster={videoPosterDesktop ?? undefined}
                 disablePictureInPicture
                 disableRemotePlayback
-                onLoadedData={() => setDesktopReady(true)}
                 className={cn(
-                  "h-full w-full object-cover transition-opacity duration-200 ease-out",
-                  desktopReady ? "opacity-100" : "opacity-0",
+                  "h-full w-full object-cover",
                   // Hide on <md ONLY when there's a separate mobile
                   // video; otherwise this video covers both viewports.
                   bothPresent && "hidden md:block",
