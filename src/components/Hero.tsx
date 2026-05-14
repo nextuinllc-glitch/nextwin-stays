@@ -35,13 +35,13 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
   // anyway. The two-video pattern is the only deterministic fix.
   const bothPresent = Boolean(videoDesktop && videoMobile);
 
-  // Fade each video in from `bg-ink` once frames are actually painting
-  // — the browser paints video frame 0 the moment metadata arrives,
-  // which on a cold load briefly flashes a still villa shot before
-  // motion begins. Holding opacity-0 until `playing` fires hides that
-  // pop; `bg-ink` covers the gap.
-  const [mobilePlaying, setMobilePlaying] = useState(false);
-  const [desktopPlaying, setDesktopPlaying] = useState(false);
+  // Fade each video in from `bg-ink` once the first frame is decoded.
+  // We trigger on `loadeddata` (frame 0 ready) rather than `playing`
+  // (motion started) so the fade-in OVERLAPS the brief gap between
+  // bytes arriving and playback kicking in — the user sees a smooth
+  // 200ms fade rather than ~1s of black before video pops in.
+  const [mobileReady, setMobileReady] = useState(false);
+  const [desktopReady, setDesktopReady] = useState(false);
 
   return (
     <section className="relative bg-ink">
@@ -57,10 +57,10 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
                 preload="auto"
                 disablePictureInPicture
                 disableRemotePlayback
-                onPlaying={() => setMobilePlaying(true)}
+                onLoadedData={() => setMobileReady(true)}
                 className={cn(
-                  "h-full w-full object-cover transition-opacity duration-500 ease-out",
-                  mobilePlaying ? "opacity-100" : "opacity-0",
+                  "h-full w-full object-cover transition-opacity duration-200 ease-out",
+                  mobileReady ? "opacity-100" : "opacity-0",
                   // Hide on ≥md ONLY if there's a separate desktop video
                   // to swap in; otherwise the mobile video doubles as
                   // the desktop fallback so we leave it visible.
@@ -79,10 +79,10 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
                 preload="auto"
                 disablePictureInPicture
                 disableRemotePlayback
-                onPlaying={() => setDesktopPlaying(true)}
+                onLoadedData={() => setDesktopReady(true)}
                 className={cn(
-                  "h-full w-full object-cover transition-opacity duration-500 ease-out",
-                  desktopPlaying ? "opacity-100" : "opacity-0",
+                  "h-full w-full object-cover transition-opacity duration-200 ease-out",
+                  desktopReady ? "opacity-100" : "opacity-0",
                   // Hide on <md ONLY when there's a separate mobile
                   // video; otherwise this video covers both viewports.
                   bothPresent && "hidden md:block",
