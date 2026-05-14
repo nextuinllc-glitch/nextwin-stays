@@ -40,14 +40,14 @@ export function Logo({ className, variant = "default" }: LogoProps) {
       <span
         aria-hidden
         className={cn(
-          "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors sm:h-9 sm:w-9",
+          "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors min-[380px]:h-8 min-[380px]:w-8 sm:h-9 sm:w-9",
           markBorder,
           markStroke,
         )}
       >
         <svg
           viewBox="0 0 20 20"
-          className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
+          className="h-[15px] w-[15px] min-[380px]:h-4 min-[380px]:w-4 sm:h-[18px] sm:w-[18px]"
           fill="none"
           stroke="currentColor"
           strokeWidth={1.4}
@@ -63,7 +63,7 @@ export function Logo({ className, variant = "default" }: LogoProps) {
       <span className="flex flex-col leading-none">
         <span
           className={cn(
-            "font-display text-[12px] font-semibold uppercase tracking-[0.18em] sm:text-[15px] sm:tracking-[0.28em] md:text-base",
+            "font-display text-[11px] font-semibold uppercase tracking-[0.14em] min-[380px]:text-[12px] min-[380px]:tracking-[0.18em] sm:text-[15px] sm:tracking-[0.28em] md:text-base",
             inkTone,
           )}
         >
@@ -71,7 +71,7 @@ export function Logo({ className, variant = "default" }: LogoProps) {
         </span>
         <span
           className={cn(
-            "mt-1 text-[8px] font-semibold uppercase tracking-[0.36em] sm:mt-1.5 sm:text-[9px] sm:tracking-[0.5em]",
+            "mt-0.5 text-[7px] font-semibold uppercase tracking-[0.28em] min-[380px]:mt-1 min-[380px]:text-[8px] min-[380px]:tracking-[0.36em] sm:mt-1.5 sm:text-[9px] sm:tracking-[0.5em]",
             subtleTone,
           )}
         >

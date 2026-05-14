@@ -139,7 +139,7 @@ export function Hero({
       <div className="relative flex min-h-[85vh] items-center md:min-h-[90vh]">
         <div className="container-page flex w-full flex-col items-center justify-center py-16 text-center sm:py-20 lg:py-24">
           <h1
-            className="whitespace-nowrap font-sans text-2xl font-normal uppercase leading-[1.05] tracking-[0.1em] text-white drop-shadow-[0_6px_24px_rgba(0,0,0,0.45)] sm:text-4xl sm:tracking-[0.18em] md:text-5xl md:tracking-[0.2em] lg:text-[68px]"
+            className="whitespace-nowrap font-sans text-[20px] font-normal uppercase leading-[1.05] tracking-[0.08em] text-white drop-shadow-[0_6px_24px_rgba(0,0,0,0.45)] min-[380px]:text-2xl min-[380px]:tracking-[0.1em] sm:text-4xl sm:tracking-[0.18em] md:text-5xl md:tracking-[0.2em] lg:text-[68px]"
           >
             Nextwin
             <span aria-hidden className="mx-1.5 align-middle text-white/45 sm:mx-3">·</span>
@@ -152,10 +152,10 @@ export function Hero({
               we drop the standalone end-caps; spacing rebalances
               automatically when the tagline or subtitle is hidden. */}
           {heroTagline && (
-            <span className="mt-4 inline-flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.32em] text-white/75 sm:mt-5 sm:gap-3 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px]">
-              <span aria-hidden className="h-px w-8 bg-white/45 sm:w-12 md:w-14" />
+            <span className="mt-3 inline-flex items-center gap-2 text-[8px] font-semibold uppercase tracking-[0.24em] text-white/75 min-[380px]:text-[9px] min-[380px]:tracking-[0.32em] sm:mt-5 sm:gap-3 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px]">
+              <span aria-hidden className="h-px w-5 bg-white/45 min-[380px]:w-8 sm:w-12 md:w-14" />
               {heroTagline}
-              <span aria-hidden className="h-px w-8 bg-white/45 sm:w-12 md:w-14" />
+              <span aria-hidden className="h-px w-5 bg-white/45 min-[380px]:w-8 sm:w-12 md:w-14" />
             </span>
           )}
 

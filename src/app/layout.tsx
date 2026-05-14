@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
@@ -78,6 +78,19 @@ export const metadata: Metadata = {
     images: ["/og-default.jpg"],
   },
   robots: { index: true, follow: true },
+};
+
+// Explicit viewport — without this, Safari on smaller iPhones (11 Pro,
+// SE, mini at 375 px) sometimes renders the page with an inflated
+// initial scale, which reads as "everything looks zoomed". Locking
+// width to the device + initialScale 1 forces 1:1 CSS-px-to-screen.
+// maximumScale stays at 5 so accessibility pinch-zoom keeps working.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#FF385C",
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
