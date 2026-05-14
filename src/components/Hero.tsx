@@ -36,8 +36,8 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
   const bothPresent = Boolean(videoDesktop && videoMobile);
 
   return (
-    <section className="relative">
-      <div className="absolute inset-0 overflow-hidden">
+    <section className="relative bg-ink">
+      <div className="absolute inset-0 overflow-hidden bg-ink">
         {hasVideo ? (
           <>
             {videoMobile && (
@@ -46,8 +46,13 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
                 muted
                 loop
                 playsInline
-                preload="metadata"
-                poster={posterImage}
+                // Drop the `poster` deliberately: it was a different
+                // Unsplash villa than what's in the video, so reloads
+                // flashed scene-A → scene-B which felt jarring. The
+                // section's `bg-ink` covers the empty frame before the
+                // video paints; combined with `preload="auto"` and the
+                // R2 edge cache the video starts within ~200ms anyway.
+                preload="auto"
                 disablePictureInPicture
                 disableRemotePlayback
                 className={cn(
@@ -67,8 +72,7 @@ export function Hero({ posterImage, videoDesktop, videoMobile }: Props) {
                 muted
                 loop
                 playsInline
-                preload="metadata"
-                poster={posterImage}
+                preload="auto"
                 disablePictureInPicture
                 disableRemotePlayback
                 className={cn(
