@@ -1,8 +1,10 @@
 import { ImageResponse } from "next/og";
 
-// Browser favicon — the same Marrakech-inspired horseshoe arch as the
-// in-app Logo. Terracotta tile, champagne-gold arch + 8-pointed star,
-// rounded-square frame. Reads as a Moroccan doorway stamp at 32 px.
+// Browser favicon — the same monogram as the Logo component: a
+// hairline ring with an editorial "N" inside, in the brand red.
+// Strokes are stepped up slightly vs. the in-app logo (which sits
+// at 36 px on a calm cream backdrop) because at 32 px on a tiny
+// browser tab, true hairlines disappear into sub-pixel aliasing.
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 // Required for `output: 'export'` — bake the icon into a real .png at
@@ -19,30 +21,31 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          // Terracotta gradient — sun-baked sandstone, the colour of the
-          // Marrakech Medina walls at golden hour.
-          background: "linear-gradient(135deg, #FF385C 0%, #E00B41 100%)",
+          background: "white",
           borderRadius: 7,
         }}
       >
-        <svg width="22" height="22" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-          {/* 8-pointed star (Khatim) — the classic Marrakech zellige
-              ornament, in champagne gold. */}
-          <path
-            d="M16 4 L17 6.6 L19.6 5.7 L18.7 8.3 L21.3 9.3 L18.7 10.3 L19.6 12.9 L17 12 L16 14.6 L15 12 L12.4 12.9 L13.3 10.3 L10.7 9.3 L13.3 8.3 L12.4 5.7 L15 6.6 Z"
-            fill="#E5C68A"
-          />
-          {/* Horseshoe arch — the iconic Moorish doorway silhouette. */}
-          <path
-            d="M9 27 L9 17 C 9 12, 14.5 11, 16 11 C 17.5 11, 23 12, 23 17 L23 27"
+        <svg width="28" height="28" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          {/* Hairline ring — 1.6px stroke reads as a thin line on
+              retina without vanishing at the 32 px favicon size. */}
+          <circle
+            cx="16"
+            cy="16"
+            r="13"
             fill="none"
-            stroke="#E5C68A"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            stroke="#E00B41"
+            strokeWidth="1.6"
           />
-          {/* Baseline */}
-          <path d="M6 27 L26 27" stroke="#E5C68A" strokeWidth="1.4" strokeLinecap="round" opacity="0.6" />
+          {/* Editorial N — same path as the Logo SVG, scaled into the
+              circle with a touch of inset on every side. */}
+          <path
+            d="M11 23 V9 L21 23 V9"
+            fill="none"
+            stroke="#E00B41"
+            strokeWidth="1.8"
+            strokeLinecap="butt"
+            strokeLinejoin="miter"
+          />
         </svg>
       </div>
     ),

@@ -17,6 +17,13 @@
   }
   body {
     @apply bg-cream-50 text-ink;
+    /* Safety net against horizontal page scroll on mobile — if any
+       descendant accidentally exceeds the viewport width (a wide
+       wordmark, a flex row with min-width content, a stray fixed
+       element), the page itself never grows a horizontal scrollbar.
+       Sticky / sticky-top elements still work; only the page-level
+       scroll axis is clamped. */
+    overflow-x: hidden;
   }
   ::selection {
     @apply bg-brand-100 text-brand-900;

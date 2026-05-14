@@ -163,6 +163,14 @@ model Settings {
   heroSubtitleEn String @default("Your holiday rental in Marrakech.")
   heroSubtitleAr String @default("إيجارك للعطلات في مراكش.")
 
+  // Editorial dateline shown beneath the hero wordmark — the small
+  // all-caps line flanked by hairline rules. Stored per-locale so the
+  // admin can localise it; an empty string in any slot hides the line
+  // on that locale (so an FR-only label doesn't leak into EN / AR).
+  heroTaglineFr String @default("Maisons de Marrakech")
+  heroTaglineEn String @default("Houses of Marrakech")
+  heroTaglineAr String @default("منازل مراكش")
+
   // Static fallback image — also serves as the <video poster> so the hero
   // paints instantly while the video frames stream in.
   heroImage String @default("https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=2400&q=80")

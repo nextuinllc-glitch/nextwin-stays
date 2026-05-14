@@ -1,8 +1,10 @@
 import { ImageResponse } from "next/og";
 
-// iOS / iPadOS home-screen icon — same Marrakech horseshoe-arch mark as
-// the in-app Logo, scaled to 180×180 and paired with the NEXTWIN word
-// in champagne gold beneath the glyph. Terracotta gradient backdrop.
+// iOS / iPadOS home-screen icon — the editorial monogram (hairline
+// ring + thin "N") on a brand-red square, with a small tracked
+// "NEXTWIN" wordmark below the ring. Mirrors the in-app Logo while
+// inverting the colour story so the mark stands out on the home
+// screen: white on red, instead of red on cream.
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 // Required for `output: 'export'` — bake the icon at build time.
@@ -23,28 +25,31 @@ export default function AppleIcon() {
           fontFamily: "Georgia, serif",
         }}
       >
-        <svg width="100" height="100" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M16 4 L17 6.6 L19.6 5.7 L18.7 8.3 L21.3 9.3 L18.7 10.3 L19.6 12.9 L17 12 L16 14.6 L15 12 L12.4 12.9 L13.3 10.3 L10.7 9.3 L13.3 8.3 L12.4 5.7 L15 6.6 Z"
-            fill="#E5C68A"
-          />
-          <path
-            d="M9 27 L9 17 C 9 12, 14.5 11, 16 11 C 17.5 11, 23 12, 23 17 L23 27"
+        <svg width="104" height="104" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <circle
+            cx="16"
+            cy="16"
+            r="13"
             fill="none"
-            stroke="#E5C68A"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            stroke="#ffffff"
+            strokeWidth="1.4"
           />
-          <path d="M6 27 L26 27" stroke="#E5C68A" strokeWidth="1.4" strokeLinecap="round" opacity="0.6" />
+          <path
+            d="M11 23 V9 L21 23 V9"
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="1.7"
+            strokeLinecap="butt"
+            strokeLinejoin="miter"
+          />
         </svg>
         <div
           style={{
-            marginTop: 8,
+            marginTop: 12,
             fontSize: 13,
             fontWeight: 600,
-            letterSpacing: "0.3em",
-            color: "#E5C68A",
+            letterSpacing: "0.32em",
+            color: "#ffffff",
           }}
         >
           NEXTWIN

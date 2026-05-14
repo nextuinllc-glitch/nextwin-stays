@@ -4,31 +4,55 @@ import Image from "next/image";
 import Link from "next/link";
 import { Sparkles, ShieldCheck, Heart, Compass } from "lucide-react";
 import { useI18n } from "@/i18n/I18nProvider";
-import { pickField, type PageContentMap } from "@/lib/page-content-schema";
+import { pickField, pickImage, type PageContentMap } from "@/lib/page-content-schema";
 
 type Props = {
   pageContent?: PageContentMap;
 };
 
+// Stock fallbacks — only used when the admin has never touched the
+// field. An explicit clear in the admin (empty string) overrides
+// these to null and hides the cell entirely. See `pickImage`.
+const FALLBACK_HERO_IMAGE =
+  "https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=2400&q=80";
+const FALLBACK_GALLERY = [
+  "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=900&q=80",
+] as const;
+
 export function AboutContent({ pageContent }: Props) {
   const { t, locale } = useI18n();
   const get = (key: string, fallback: string) =>
     pickField(pageContent, key, locale, fallback);
+  const getImg = (key: string, fallback: string | null) =>
+    pickImage(pageContent, key, fallback);
+
+  const heroImage = getImg("heroImage", FALLBACK_HERO_IMAGE);
+  const galleryImages: Array<string | null> = [
+    getImg("galleryImage1", FALLBACK_GALLERY[0]),
+    getImg("galleryImage2", FALLBACK_GALLERY[1]),
+    getImg("galleryImage3", FALLBACK_GALLERY[2]),
+    getImg("galleryImage4", FALLBACK_GALLERY[3]),
+  ];
 
   return (
     <>
       <section className="relative overflow-hidden bg-ink">
-        <div className="absolute inset-0 opacity-50">
-          <Image
-            src="https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=2400&q=80"
-            alt=""
-            fill
-            sizes="100vw"
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/70" />
-        </div>
+        {heroImage && (
+          <div className="absolute inset-0 opacity-50">
+            <Image
+              src={heroImage}
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/70" />
+          </div>
+        )}
         <div className="container-page relative py-20 sm:py-28">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white ring-1 ring-white/30 backdrop-blur">
@@ -57,42 +81,27 @@ export function AboutContent({ pageContent }: Props) {
             </div>
           </div>
 
+          {/* Story-section gallery — four slots managed from the admin
+              Pages editor. Each slot's aspect ratio is fixed so the
+              staggered layout stays visually balanced; an empty slot
+              renders nothing (rather than a stock fallback) so an
+              intentional clear in the admin actually hides the cell. */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-3">
-              <div className="aspect-[3/4] overflow-hidden rounded-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=900&q=80"
-                  alt="Tiled riad courtyard"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="aspect-square overflow-hidden rounded-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80"
-                  alt="Riad rooftop terrace"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+              {galleryImages[0] && (
+                <GalleryCell src={galleryImages[0]} aspect="aspect-[3/4]" />
+              )}
+              {galleryImages[1] && (
+                <GalleryCell src={galleryImages[1]} aspect="aspect-square" />
+              )}
             </div>
             <div className="translate-y-10 space-y-3">
-              <div className="aspect-square overflow-hidden rounded-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80"
-                  alt="Bedroom with carved wood headboard"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="aspect-[3/4] overflow-hidden rounded-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=900&q=80"
-                  alt="Villa pool at golden hour"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+              {galleryImages[2] && (
+                <GalleryCell src={galleryImages[2]} aspect="aspect-square" />
+              )}
+              {galleryImages[3] && (
+                <GalleryCell src={galleryImages[3]} aspect="aspect-[3/4]" />
+              )}
             </div>
           </div>
         </div>
@@ -140,6 +149,15 @@ export function AboutContent({ pageContent }: Props) {
         </div>
       </section>
     </>
+  );
+}
+
+function GalleryCell({ src, aspect }: { src: string; aspect: "aspect-[3/4]" | "aspect-square" }) {
+  return (
+    <div className={`${aspect} overflow-hidden rounded-2xl`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" className="h-full w-full object-cover" />
+    </div>
   );
 }
 

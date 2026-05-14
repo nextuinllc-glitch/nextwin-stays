@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Save, ChevronLeft, Globe } from "lucide-react";
+import { Save, ChevronLeft, Globe, Upload, Trash2, Loader2, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
   Field,
@@ -53,6 +53,19 @@ export function PageContentEditor({
       const bundle: LocalizedValue = { ...(next[key] ?? {}) };
       bundle[locale] = val;
       next[key] = bundle;
+      return next;
+    });
+  };
+
+  // Image fields are non-localised — store the URL under `.fr` so the
+  // public renderer reads it the same way on every locale. Passing
+  // empty string here keeps the explicit-clear contract (cleared slot
+  // hides the cell instead of falling back to a stock photo).
+  const setImageUrl = (key: string, url: string) => {
+    setSaved(false);
+    setContent((prev) => {
+      const next: PageContentMap = { ...prev };
+      next[key] = { fr: url };
       return next;
     });
   };
@@ -168,6 +181,18 @@ export function PageContentEditor({
             <div className="mt-4 space-y-4">
               {list.map((f) => {
                 const bundle = content[f.key] ?? {};
+                if (f.type === "image") {
+                  return (
+                    <ImageField
+                      key={f.key}
+                      label={f.label}
+                      hint={f.hint}
+                      folder={pageKey}
+                      value={bundle.fr ?? ""}
+                      onChange={(url) => setImageUrl(f.key, url)}
+                    />
+                  );
+                }
                 const value = bundle[locale] ?? "";
                 return (
                   <label key={f.key} className="block">
@@ -209,6 +234,127 @@ export function PageContentEditor({
           </section>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Upload tile — drop-in replacement for a text input when the field is
+// of type "image". Posts the file to /api/admin/upload/image which
+// streams it to R2 and returns a public URL. Clearing sends an empty
+// string upstream so the public renderer knows to hide the slot
+// instead of falling back to a stock photo. No locale tabs — images
+// look the same in FR / EN / AR.
+function ImageField({
+  label,
+  hint,
+  folder,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  folder: string;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const upload = async (file: File) => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", folder);
+      const res = await fetch("/api/admin/upload/image", {
+        method: "POST",
+        body: fd,
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok || !j?.ok) {
+        setErr(j?.error ?? "Échec de l'envoi");
+        return;
+      }
+      onChange(j.src as string);
+    } catch {
+      setErr("Erreur réseau");
+    } finally {
+      setBusy(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-3">
+      <div className="flex items-baseline justify-between">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">
+          {label}
+        </span>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 transition hover:text-rose-700"
+          >
+            <Trash2 className="h-3 w-3" />
+            Supprimer
+          </button>
+        )}
+      </div>
+
+      <div className="mt-2 overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+        {value ? (
+          // Square preview crop so admins can see the slot framing —
+          // the public page applies aspect-[3/4] etc on its own.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={value}
+            alt=""
+            className="h-32 w-full object-cover"
+            onError={() => setErr("Image introuvable")}
+          />
+        ) : (
+          <div className="flex h-32 flex-col items-center justify-center gap-1 text-xs text-ink-soft">
+            <ImageIcon className="h-5 w-5" />
+            Aucune image
+          </div>
+        )}
+      </div>
+
+      {hint && <p className="mt-2 text-[11px] text-ink-soft">{hint}</p>}
+
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/avif"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) upload(f);
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          className={cn(
+            "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-brand-600 px-3 py-2 text-xs font-semibold text-brand-700 transition",
+            busy ? "opacity-60" : "hover:bg-brand-50",
+          )}
+        >
+          {busy ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Upload className="h-3.5 w-3.5" />
+          )}
+          {busy ? "Envoi…" : value ? "Remplacer" : "Téléverser"}
+        </button>
+      </div>
+
+      {err && <p className="mt-2 text-[11px] text-rose-600">{err}</p>}
     </div>
   );
 }

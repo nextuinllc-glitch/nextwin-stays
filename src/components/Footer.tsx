@@ -5,8 +5,11 @@ import { usePathname } from "next/navigation";
 import { Mail, Phone, MapPin, Facebook, Instagram, Twitter } from "lucide-react";
 import { Logo } from "./Logo";
 import { useI18n } from "@/i18n/I18nProvider";
+import type { ContactSettings } from "@/lib/settings-repo";
 
-export function Footer() {
+type Props = { contact: ContactSettings };
+
+export function Footer({ contact }: Props) {
   const { t } = useI18n();
   const pathname = usePathname();
 
@@ -69,15 +72,15 @@ export function Footer() {
             <ul className="space-y-2.5 text-sm">
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
-                <span>Gueliz, Marrakech 40000</span>
+                <span>{contact.addressLine}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
-                <a href="tel:+212600000000" className="transition hover:text-ink">+212 6 00 00 00 00</a>
+                <a href={contact.phoneHref} className="transition hover:text-ink">{contact.phone}</a>
               </li>
               <li className="flex items-start gap-2">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
-                <a href="mailto:hello@nextwin.stays" className="transition hover:text-ink">hello@nextwin.stays</a>
+                <a href={contact.mailtoHref} className="transition hover:text-ink">{contact.email}</a>
               </li>
             </ul>
           </div>

@@ -45,6 +45,9 @@ type Props = {
   // freshly seeded site shows clean totals; admin edits propagate to
   // the booking widget + checkout summary via this prop.
   fees: { cleaningFee: number; serviceFeeRate: number };
+  // Concierge WhatsApp number from Settings.whatsappNumber — used by
+  // the booking-widget CTA and the "ask the concierge" buttons.
+  whatsappNumber: string;
 };
 
 // Picks the right translation based on locale, with FR fallback for
@@ -55,7 +58,7 @@ function pick(bundle: { fr: string; en: string | null; ar: string | null }, loca
   return bundle.fr;
 }
 
-export function PropertyDetailContent({ property, blockedRanges, fees }: Props) {
+export function PropertyDetailContent({ property, blockedRanges, fees, whatsappNumber }: Props) {
   const { t, locale } = useI18n();
   const params = useSearchParams();
   const [showAllRules, setShowAllRules] = useState(false);
@@ -363,7 +366,12 @@ export function PropertyDetailContent({ property, blockedRanges, fees }: Props) 
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <BookingWidget property={property} blocked={blockedRanges} fees={fees} />
+          <BookingWidget
+            property={property}
+            blocked={blockedRanges}
+            fees={fees}
+            whatsappNumber={whatsappNumber}
+          />
         </aside>
       </div>
 

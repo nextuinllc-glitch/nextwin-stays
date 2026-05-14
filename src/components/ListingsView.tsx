@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Map as MapIcon } from "lucide-react";
 import type { Property, PropertyType } from "@/lib/properties";
 import { PropertyCard } from "./PropertyCard";
 import { TypePills } from "./TypePills";
@@ -65,13 +64,10 @@ export function ListingsView({ list, counts }: Props) {
             { value: "riad", label: t.type.riad, count: counts.riad },
           ]}
         />
-        <button
-          type="button"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-brand-600/20 bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 md:w-auto"
-        >
-          <MapIcon className="h-4 w-4" />
-          {t.listings.viewMap}
-        </button>
+        {/* Map view button — hidden site-wide while the catalogue is
+            small (≤10 properties). A map with one or two pins reads as
+            empty and undermines the "curated selection" pitch. Restore
+            once the catalogue grows. */}
       </div>
 
       <div className="mt-8">

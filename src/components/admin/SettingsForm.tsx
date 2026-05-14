@@ -21,6 +21,9 @@ type Initial = {
   heroSubtitleFr: string;
   heroSubtitleEn: string;
   heroSubtitleAr: string;
+  heroTaglineFr: string;
+  heroTaglineEn: string;
+  heroTaglineAr: string;
   heroImage: string;
   heroVideoDesktop: string | null;
   heroVideoMobile: string | null;
@@ -94,52 +97,71 @@ export function SettingsForm({ initial }: { initial: Initial }) {
             ))}
           </div>
           {tab === "fr" && (
-            <Field label="Sous-titre du hero (FR)">
-              <input
-                className="form-input"
-                value={data.heroSubtitleFr}
-                onChange={(e) => update("heroSubtitleFr", e.target.value)}
-              />
-            </Field>
+            <>
+              <Field label="Sous-titre du hero (FR)">
+                <input
+                  className="form-input"
+                  value={data.heroSubtitleFr}
+                  onChange={(e) => update("heroSubtitleFr", e.target.value)}
+                  placeholder="Laissez vide pour masquer le sous-titre."
+                />
+              </Field>
+              <Field label="Étiquette éditoriale (FR)">
+                <input
+                  className="form-input"
+                  value={data.heroTaglineFr}
+                  onChange={(e) => update("heroTaglineFr", e.target.value)}
+                  placeholder="Maisons de Marrakech"
+                />
+                <p className="mt-1 text-[11px] text-ink-soft">
+                  Petite ligne en majuscules sous « NEXTWIN · STAY », encadrée par deux traits.
+                  Laissez vide pour la masquer.
+                </p>
+              </Field>
+            </>
           )}
           {tab === "en" && (
-            <Field label="Hero subtitle (EN)">
-              <input
-                className="form-input"
-                value={data.heroSubtitleEn}
-                onChange={(e) => update("heroSubtitleEn", e.target.value)}
-              />
-            </Field>
+            <>
+              <Field label="Hero subtitle (EN)">
+                <input
+                  className="form-input"
+                  value={data.heroSubtitleEn}
+                  onChange={(e) => update("heroSubtitleEn", e.target.value)}
+                  placeholder="Leave empty to hide the subtitle."
+                />
+              </Field>
+              <Field label="Editorial tagline (EN)">
+                <input
+                  className="form-input"
+                  value={data.heroTaglineEn}
+                  onChange={(e) => update("heroTaglineEn", e.target.value)}
+                  placeholder="Houses of Marrakech"
+                />
+              </Field>
+            </>
           )}
           {tab === "ar" && (
-            <Field label="عنوان البطل (AR)">
-              <input
-                dir="rtl"
-                className="form-input"
-                value={data.heroSubtitleAr}
-                onChange={(e) => update("heroSubtitleAr", e.target.value)}
-              />
-            </Field>
+            <>
+              <Field label="عنوان البطل (AR)">
+                <input
+                  dir="rtl"
+                  className="form-input"
+                  value={data.heroSubtitleAr}
+                  onChange={(e) => update("heroSubtitleAr", e.target.value)}
+                />
+              </Field>
+              <Field label="السطر التحريري (AR)">
+                <input
+                  dir="rtl"
+                  className="form-input"
+                  value={data.heroTaglineAr}
+                  onChange={(e) => update("heroTaglineAr", e.target.value)}
+                  placeholder="منازل مراكش"
+                />
+              </Field>
+            </>
           )}
 
-          <Field label="Image du hero (URL)">
-            <input
-              className="form-input"
-              value={data.heroImage}
-              onChange={(e) => update("heroImage", e.target.value)}
-              placeholder="https://images.unsplash.com/…"
-            />
-          </Field>
-          {data.heroImage && (
-            <div className="mt-2 overflow-hidden rounded-lg border border-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={data.heroImage}
-                alt="Hero preview"
-                className="h-32 w-full object-cover"
-              />
-            </div>
-          )}
         </Card>
 
         {/* Hero videos — desktop landscape + mobile portrait. Browser

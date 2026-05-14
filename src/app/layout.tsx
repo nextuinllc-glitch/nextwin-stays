@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { SITE_URL, SITE_NAME, hreflangAlternates } from "@/lib/seo";
+import { getContactSettings } from "@/lib/settings-repo";
 
 // Airbnb / Menara style: Inter everywhere, no display serif. The display
 // CSS variable still resolves so existing `font-display` classes inherit
@@ -79,14 +80,19 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Contact info threaded into the Footer (and into the public site's
+  // other surfaces from their own server pages). The DB is queried once
+  // per request in dev; in production this is baked at static-export
+  // build time.
+  const contact = await getContactSettings();
   return (
     <html lang="fr" className={`${sans.variable} ${display.variable}`}>
       <body className="min-h-screen flex flex-col bg-cream-50">
         <I18nProvider>
           <Header />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer contact={contact} />
         </I18nProvider>
       </body>
     </html>

@@ -8,25 +8,76 @@ type LogoProps = {
   variant?: "default" | "light";
 };
 
-// Menara / Airbnb-style wordmark — pure typography, no graphic, no
-// subtitle. Two-tone split: "NEXTWIN" in the magenta brand colour,
-// "STAY" in ink (or white over hero photos). The `light` variant flips
-// the ink half to white so the mark stays readable when laid over the
-// hero video / dark imagery.
+// Editorial monogram + wordmark — modelled on the signage of high-end
+// hospitality brands (Aman, Belmond, Cheval Blanc).
+//
+//   ┌───┐  NEXTWIN · STAY
+//   │ N │  ─ MARRAKECH
+//   └───┘
+//
+// Responsive sizing is the bigger story than the visual style: this
+// mark must clear an iPhone SE / mini (320–375 px viewport) WITH the
+// hamburger menu beside it. Mobile uses a compact monogram + tighter
+// letter-spacing; everything opens up at the `sm` breakpoint so
+// tablets and desktops get the breathy luxury proportions.
 export function Logo({ className, variant = "default" }: LogoProps) {
-  const inkTone = variant === "light" ? "text-white" : "text-ink";
+  const isLight = variant === "light";
+  const inkTone = isLight ? "text-white" : "text-ink";
+  const subtleTone = isLight ? "text-white/60" : "text-ink-soft";
+  const markBorder = isLight ? "border-white/70" : "border-brand-500/70";
+  const markStroke = isLight ? "text-white" : "text-brand-600";
+  const dotTone = isLight ? "text-white/60" : "text-brand-500";
 
   return (
     <Link
       href="/"
-      aria-label="NEXTWIN STAY"
+      aria-label="NEXTWIN STAY · Marrakech"
       className={cn(
-        "inline-flex items-baseline gap-1.5 font-display text-xl font-extrabold tracking-tight sm:text-2xl",
+        "group inline-flex shrink-0 items-center gap-2 sm:gap-2.5",
         className,
       )}
     >
-      <span className="text-brand-500">NEXTWIN</span>
-      <span className={inkTone}>STAY</span>
+      <span
+        aria-hidden
+        className={cn(
+          "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors sm:h-9 sm:w-9",
+          markBorder,
+          markStroke,
+        )}
+      >
+        <svg
+          viewBox="0 0 20 20"
+          className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.4}
+          strokeLinecap="butt"
+        >
+          {/* Editorial N — hairline verticals connected by a single
+              diagonal, sized to leave a sliver of negative space
+              inside the ring on every side. */}
+          <path d="M5 15.5V4.5L15 15.5V4.5" />
+        </svg>
+      </span>
+
+      <span className="flex flex-col leading-none">
+        <span
+          className={cn(
+            "font-display text-[12px] font-semibold uppercase tracking-[0.18em] sm:text-[15px] sm:tracking-[0.28em] md:text-base",
+            inkTone,
+          )}
+        >
+          Nextwin <span className={dotTone}>·</span> Stay
+        </span>
+        <span
+          className={cn(
+            "mt-1 text-[8px] font-semibold uppercase tracking-[0.36em] sm:mt-1.5 sm:text-[9px] sm:tracking-[0.5em]",
+            subtleTone,
+          )}
+        >
+          Marrakech
+        </span>
+      </span>
     </Link>
   );
 }

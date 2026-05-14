@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { getPropertyBySlug, getAllPropertySlugs } from "@/lib/property-repo";
-import { getFeeSettings } from "@/lib/settings-repo";
+import { getFeeSettings, getContactSettings } from "@/lib/settings-repo";
 
 export async function generateStaticParams() {
   const slugs = await getAllPropertySlugs();
@@ -31,6 +31,7 @@ export default async function ReservePage({
   const property = await getPropertyBySlug(slug);
   if (!property) notFound();
   const fees = await getFeeSettings();
+  const contact = await getContactSettings();
 
   // <Suspense> required because CheckoutForm calls useSearchParams() to
   // hydrate the dates / guest count from the URL on the client. Without
@@ -42,6 +43,7 @@ export default async function ReservePage({
         property={property}
         initial={{ from: null, to: null, guests: 2 }}
         fees={fees}
+        whatsappNumber={contact.whatsappNumber}
       />
     </Suspense>
   );

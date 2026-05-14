@@ -15,8 +15,11 @@ export type Field = {
   label: string;
   /** Hint shown under the input. */
   hint?: string;
-  /** Single-line vs multi-line input. */
-  type: "text" | "textarea";
+  /** Single-line vs multi-line input vs image upload. Image fields are
+   *  not localised — the URL is stored under the `.fr` slot only and
+   *  rendered the same way on every locale. The Pages editor hides
+   *  language tabs for these fields. */
+  type: "text" | "textarea" | "image";
   /** Group label — fields with the same group render as a card. */
   group: string;
 };
@@ -45,10 +48,15 @@ export const PAGE_SCHEMAS: Record<PageKey, Field[]> = {
     { key: "heroEyebrow", label: "Eyebrow (petit texte au-dessus du titre)", type: "text", group: "Hero" },
     { key: "heroTitle", label: "Titre principal", type: "textarea", group: "Hero" },
     { key: "heroSubtitle", label: "Sous-titre", type: "textarea", group: "Hero" },
+    { key: "heroImage", label: "Image de fond — Hero", hint: "Recommandé : 2400×1600, paysage", type: "image", group: "Hero" },
     { key: "storyTitle", label: "Titre — section histoire", type: "text", group: "Story" },
     { key: "storyP1", label: "Paragraphe 1", type: "textarea", group: "Story" },
     { key: "storyP2", label: "Paragraphe 2", type: "textarea", group: "Story" },
     { key: "storyP3", label: "Paragraphe 3", type: "textarea", group: "Story" },
+    { key: "galleryImage1", label: "Galerie — Image 1 (portrait)", hint: "Vide = la cellule est masquée", type: "image", group: "Story" },
+    { key: "galleryImage2", label: "Galerie — Image 2 (carré)", hint: "Vide = la cellule est masquée", type: "image", group: "Story" },
+    { key: "galleryImage3", label: "Galerie — Image 3 (carré)", hint: "Vide = la cellule est masquée", type: "image", group: "Story" },
+    { key: "galleryImage4", label: "Galerie — Image 4 (portrait)", hint: "Vide = la cellule est masquée", type: "image", group: "Story" },
     { key: "pillarsTitle", label: "Titre — section piliers", type: "text", group: "Pillars" },
     { key: "pillarsSubtitle", label: "Sous-titre", type: "textarea", group: "Pillars" },
     { key: "pillar1Title", label: "Pilier 1 — Titre", type: "text", group: "Pillars" },
@@ -112,4 +120,23 @@ export function pickField(
   // FR fallback — admins typically fill FR first.
   if (bundle.fr && bundle.fr.trim()) return bundle.fr;
   return fallback;
+}
+
+// Resolves an image-type field. Images aren't localised — the URL
+// lives under `.fr` regardless of the active language. Returns null
+// (not the fallback) when the admin has explicitly cleared the slot,
+// so callers can hide the cell instead of falling back to a stale
+// stock photo.
+export function pickImage(
+  content: PageContentMap | null | undefined,
+  fieldKey: string,
+  fallback?: string | null,
+): string | null {
+  const bundle = content?.[fieldKey];
+  if (!bundle) return fallback ?? null;
+  // Explicit empty string = admin cleared it → hide. Same convention
+  // as the hero subtitle.
+  if (bundle.fr === "") return null;
+  const url = bundle.fr;
+  return url && url.trim() ? url : (fallback ?? null);
 }

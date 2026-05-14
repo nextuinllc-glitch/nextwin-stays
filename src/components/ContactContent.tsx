@@ -3,12 +3,14 @@
 import { Mail, Phone, MapPin, MessageCircle, Clock } from "lucide-react";
 import { useI18n } from "@/i18n/I18nProvider";
 import { pickField, type PageContentMap } from "@/lib/page-content-schema";
+import type { ContactSettings } from "@/lib/settings-repo";
 
 type Props = {
   pageContent?: PageContentMap;
+  contact: ContactSettings;
 };
 
-export function ContactContent({ pageContent }: Props) {
+export function ContactContent({ pageContent, contact }: Props) {
   const { t, locale } = useI18n();
   const get = (key: string, fallback: string) =>
     pickField(pageContent, key, locale, fallback);
@@ -28,28 +30,28 @@ export function ContactContent({ pageContent }: Props) {
             <ContactCard
               icon={<MessageCircle className="h-5 w-5" />}
               label={get("whatsapp", t.contact.whatsapp)}
-              value="+212 6 00 00 00 00"
-              href="https://wa.me/212600000000"
+              value={formatPhone(contact.whatsappNumber)}
+              href={contact.whatsappHref}
               cta={get("whatsappCta", t.contact.whatsappCta)}
             />
             <ContactCard
               icon={<Mail className="h-5 w-5" />}
               label={get("email", t.contact.email)}
-              value="hello@nextwin.stays"
-              href="mailto:hello@nextwin.stays"
+              value={contact.email}
+              href={contact.mailtoHref}
               cta={get("emailCta", t.contact.emailCta)}
             />
             <ContactCard
               icon={<Phone className="h-5 w-5" />}
               label={get("phone", t.contact.phone)}
-              value="+212 5 24 00 00 00"
-              href="tel:+212524000000"
+              value={contact.phone}
+              href={contact.phoneHref}
               cta={get("phoneCta", t.contact.phoneCta)}
             />
             <ContactCard
               icon={<MapPin className="h-5 w-5" />}
               label={get("office", t.contact.office)}
-              value={get("officeAddress", t.contact.officeAddress)}
+              value={contact.addressLine}
               cta={get("officeCta", t.contact.officeCta)}
             />
           </div>
@@ -156,6 +158,16 @@ function ContactCard({
     </div>
   );
   return href ? <a href={href}>{Inner}</a> : Inner;
+}
+
+// Pretty-print the WhatsApp number using the same spacing the Footer
+// uses — keeps the contact page on visual parity with the rest of the
+// site even though the field is freeform in the DB.
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/[^\d+]/g, "");
+  const m = digits.match(/^(\+\d{1,3})(\d)(\d{2})(\d{2})(\d{2})(\d{2})$/);
+  if (m) return `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}`;
+  return raw;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

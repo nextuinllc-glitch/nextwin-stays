@@ -20,6 +20,13 @@ type Props = {
   // still streaming — the handoff from still → motion is invisible.
   videoPosterDesktop?: string | null;
   videoPosterMobile?: string | null;
+  // Admin-edited subtitle per locale. An empty string in any slot means
+  // "use the i18n dictionary default" — keeps the seeded copy as the
+  // fallback when the admin only translates one language.
+  subtitle?: { fr: string; en: string; ar: string };
+  // Editorial dateline (tracked label under the wordmark). Per-locale;
+  // empty string in a slot hides the line for that locale.
+  tagline?: { fr: string; en: string; ar: string };
 };
 
 function inferMime(url: string) {
@@ -34,8 +41,24 @@ export function Hero({
   videoMobile,
   videoPosterDesktop,
   videoPosterMobile,
+  subtitle,
+  tagline,
 }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  // Three states for the admin subtitle:
+  //   - undefined  → prop wasn't threaded through (admin preview, etc.) → dictionary default
+  //   - "something" → admin typed copy → use it verbatim
+  //   - ""         → admin explicitly cleared the field → render NOTHING
+  // The previous `||` short-circuit treated "" and undefined identically,
+  // so clearing the field silently fell back to the dictionary and the
+  // admin's intent was lost.
+  const raw = subtitle?.[locale]?.trim();
+  const heroSubtitle = raw === undefined ? t.hero.subtitle : raw;
+
+  // Tagline: per-locale, empty = hide. Default falls back to the FR
+  // seed if the prop wasn't threaded through (admin previews), so the
+  // dateline never disappears in the wrong context.
+  const heroTagline = tagline?.[locale]?.trim() ?? "Maisons de Marrakech";
   const hasVideo = Boolean(videoDesktop || videoMobile);
   // Both ends present? Render two `<video>` elements with mutually-
   // exclusive Tailwind visibility so each viewport sees ONE consistent
@@ -115,13 +138,32 @@ export function Hero({
           where the wordmark + subtitle need more room. */}
       <div className="relative flex min-h-[85vh] items-center md:min-h-[90vh]">
         <div className="container-page flex w-full flex-col items-center justify-center py-16 text-center sm:py-20 lg:py-24">
-          <h1 className="font-display text-6xl font-semibold leading-none tracking-tight text-white drop-shadow-[0_8px_30px_rgba(0,0,0,0.45)] sm:text-7xl lg:text-[128px]">
-            NEXT<span className="text-shimmer-blue">WIN</span>
+          <h1
+            className="whitespace-nowrap font-sans text-2xl font-normal uppercase leading-[1.05] tracking-[0.1em] text-white drop-shadow-[0_6px_24px_rgba(0,0,0,0.45)] sm:text-4xl sm:tracking-[0.18em] md:text-5xl md:tracking-[0.2em] lg:text-[68px]"
+          >
+            Nextwin
+            <span aria-hidden className="mx-1.5 align-middle text-white/45 sm:mx-3">·</span>
+            Stay
           </h1>
-          <p className="mt-4 max-w-xl text-base text-white/90 sm:text-lg">
-            {t.hero.subtitle}
-          </p>
-          <div className="mt-3 h-px w-16 bg-white/40" />
+
+          {/* Editorial dateline — tracked label below the wordmark
+              flanked by hairline rules, the Aman/Belmond signage
+              convention. The rules carry the framing on their own so
+              we drop the standalone end-caps; spacing rebalances
+              automatically when the tagline or subtitle is hidden. */}
+          {heroTagline && (
+            <span className="mt-4 inline-flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.32em] text-white/75 sm:mt-5 sm:gap-3 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px]">
+              <span aria-hidden className="h-px w-8 bg-white/45 sm:w-12 md:w-14" />
+              {heroTagline}
+              <span aria-hidden className="h-px w-8 bg-white/45 sm:w-12 md:w-14" />
+            </span>
+          )}
+
+          {heroSubtitle && (
+            <p className="mt-5 max-w-md text-[13px] font-light leading-relaxed text-white/85 sm:mt-6 sm:text-sm md:text-base">
+              {heroSubtitle}
+            </p>
+          )}
 
           {/* Search form: desktop only. On mobile the floating bottom-nav
               "Dates" button is the entry point — we keep the hero clean

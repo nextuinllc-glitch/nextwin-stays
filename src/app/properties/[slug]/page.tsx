@@ -6,7 +6,7 @@ import {
   getAllPropertySlugs,
   getPropertyBlockedRanges,
 } from "@/lib/property-repo";
-import { getFeeSettings } from "@/lib/settings-repo";
+import { getFeeSettings, getContactSettings } from "@/lib/settings-repo";
 import { PropertyDetailContent } from "@/components/PropertyDetailContent";
 import {
   SITE_URL,
@@ -88,6 +88,7 @@ export default async function PropertyDetailPage({
   if (!property) notFound();
   const blockedRanges = await getPropertyBlockedRanges(slug);
   const fees = await getFeeSettings();
+  const contact = await getContactSettings();
 
   // JSON-LD for rich results — injected as a <script> tag rendered on the
   // server. Google reads this on first crawl, no JS execution required.
@@ -106,7 +107,12 @@ export default async function PropertyDetailPage({
           from `?from=&to=` deep links, and static export needs an
           explicit boundary for that. */}
       <Suspense>
-        <PropertyDetailContent property={property} blockedRanges={blockedRanges} fees={fees} />
+        <PropertyDetailContent
+          property={property}
+          blockedRanges={blockedRanges}
+          fees={fees}
+          whatsappNumber={contact.whatsappNumber}
+        />
       </Suspense>
     </>
   );

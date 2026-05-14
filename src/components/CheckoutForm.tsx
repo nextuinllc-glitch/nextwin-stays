@@ -36,6 +36,10 @@ type Props = {
   property: Property;
   initial: Initial;
   fees?: FeeSettings;
+  // Concierge WhatsApp number from Settings.whatsappNumber — drives the
+  // "Finaliser sur WhatsApp" CTA. Default keeps the component safe to
+  // mount in isolation (admin previews).
+  whatsappNumber?: string;
 };
 
 type PaymentMethod = "bank" | "cash";
@@ -45,11 +49,12 @@ type PaymentMethod = "bank" | "cash";
 // via the `fees` prop (admin-editable, defaults to zero).
 const DEFAULT_FEES: FeeSettings = { cleaningFee: 0, serviceFeeRate: 0 };
 
-// Concierge WhatsApp number used for finalising bookings — replace with the
-// real Marrakech ops number in production.
-const CONCIERGE_PHONE = "+212600000000";
-
-export function CheckoutForm({ property, initial, fees = DEFAULT_FEES }: Props) {
+export function CheckoutForm({
+  property,
+  initial,
+  fees = DEFAULT_FEES,
+  whatsappNumber = "+212600000000",
+}: Props) {
   const { cleaningFee: CLEANING_FEE, serviceFeeRate: SERVICE_FEE_RATE } = fees;
   // Static export: this page is pre-rendered once per property with empty
   // dates. We hydrate the calendar / guest count from the URL on mount so
@@ -130,7 +135,7 @@ export function CheckoutForm({ property, initial, fees = DEFAULT_FEES }: Props) 
     return lines.join("\n");
   };
 
-  const whatsappHref = `https://wa.me/${CONCIERGE_PHONE.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(buildMessage())}`;
+  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(buildMessage())}`;
 
   return (
     <>

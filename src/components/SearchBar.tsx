@@ -128,11 +128,14 @@ export function SearchBar({ variant = "hero", initialFrom = null, initialTo = nu
           //  - sm+ : landscape image is calmer and the original light frosted
           //    glass with navy text reads as luxurious — keep that.
           isHero
-            ? "bg-black/25 ring-white/30 backdrop-blur-md " +
-              "sm:bg-white/15 sm:ring-white/40 sm:backdrop-blur-sm " +
+            ? "bg-black/30 ring-white/30 backdrop-blur-md " +
+              "sm:bg-black/25 sm:ring-white/40 " +
+              // Force the labels + values to white across every
+              // breakpoint when sitting over the hero video. The
+              // brand-700 desktop override that used to live here
+              // washed out against the lighter glass backdrop.
               "[&_.field-label]:!text-white [&_.field-label]:font-bold " +
-              "[&_.field-value]:!text-white [&_.field-value]:!text-[13px] " +
-              "sm:[&_.field-label]:!text-brand-700 sm:[&_.field-value]:!text-brand-700"
+              "[&_.field-value]:!text-white [&_.field-value]:!text-[13px]"
             : "bg-white ring-gray-100",
         )}
       >
@@ -141,15 +144,22 @@ export function SearchBar({ variant = "hero", initialFrom = null, initialTo = nu
           type="button"
           onClick={() => setOpenPanel(openPanel === "dates" ? null : "dates")}
           className={cn(
-            "flex items-center gap-3 rounded-xl px-4 py-3 text-left transition hover:bg-gray-50",
-            openPanel === "dates" && "bg-gray-50",
+            "flex items-center gap-3 rounded-xl px-4 py-3 text-left transition",
+            // Hero variant lives over a dark video → use a darker hover
+            // tint so the now-always-white labels and values don't get
+            // washed out (the previous bg-gray-50 hover turned the
+            // field nearly white and the text disappeared).
+            isHero
+              ? "hover:bg-white/10"
+              : "hover:bg-gray-50",
+            openPanel === "dates" && (isHero ? "bg-white/10" : "bg-gray-50"),
           )}
         >
           <CalendarDays
             className={cn(
               "h-5 w-5 shrink-0",
               // Match the field text: white on mobile-hero, navy elsewhere.
-              isHero ? "text-white sm:text-brand-600" : "text-brand-600",
+              isHero ? "text-white" : "text-brand-600",
             )}
           />
           <div className="min-w-0 flex-1">
@@ -165,15 +175,18 @@ export function SearchBar({ variant = "hero", initialFrom = null, initialTo = nu
           type="button"
           onClick={() => setOpenPanel(openPanel === "dates" ? null : "dates")}
           className={cn(
-            "flex items-center gap-3 rounded-xl border-t border-gray-100 px-4 py-3 text-left transition hover:bg-gray-50 sm:border-l sm:border-t-0",
-            openPanel === "dates" && "bg-gray-50",
+            "flex items-center gap-3 rounded-xl border-t border-gray-100 px-4 py-3 text-left transition sm:border-l sm:border-t-0",
+            isHero
+              ? "hover:bg-white/10"
+              : "hover:bg-gray-50",
+            openPanel === "dates" && (isHero ? "bg-white/10" : "bg-gray-50"),
           )}
         >
           <CalendarDays
             className={cn(
               "h-5 w-5 shrink-0",
               // Match the field text: white on mobile-hero, navy elsewhere.
-              isHero ? "text-white sm:text-brand-600" : "text-brand-600",
+              isHero ? "text-white" : "text-brand-600",
             )}
           />
           <div className="min-w-0 flex-1">
@@ -189,14 +202,17 @@ export function SearchBar({ variant = "hero", initialFrom = null, initialTo = nu
           type="button"
           onClick={() => setOpenPanel(openPanel === "guests" ? null : "guests")}
           className={cn(
-            "flex items-center gap-3 rounded-xl border-t border-gray-100 px-4 py-3 text-left transition hover:bg-gray-50 sm:min-w-[180px] sm:border-l sm:border-t-0",
-            openPanel === "guests" && "bg-gray-50",
+            "flex items-center gap-3 rounded-xl border-t border-gray-100 px-4 py-3 text-left transition sm:min-w-[180px] sm:border-l sm:border-t-0",
+            isHero
+              ? "hover:bg-white/10"
+              : "hover:bg-gray-50",
+            openPanel === "guests" && (isHero ? "bg-white/10" : "bg-gray-50"),
           )}
         >
           <Users
             className={cn(
               "h-5 w-5 shrink-0",
-              isHero ? "text-white sm:text-brand-600" : "text-brand-600",
+              isHero ? "text-white" : "text-brand-600",
             )}
           />
           <div className="min-w-0 flex-1">

@@ -23,16 +23,17 @@ type Props = {
   // Site-wide fees from Supabase Settings (admin-editable). Defaults
   // to zero so a fresh seed shows clean totals.
   fees?: FeeSettings;
+  // Concierge WhatsApp number (raw, from Settings.whatsappNumber). The
+  // CTA in the mobile sheet routes to wa.me/<digits>. Default keeps the
+  // widget safe to mount in isolation (admin previews); real value
+  // comes from the property page.
+  whatsappNumber?: string;
 };
 
 // Default fees when the parent doesn't pass any — keeps the widget
 // safe to mount in isolation (e.g., admin previews). Real values come
 // from Supabase Settings via the `fees` prop.
 const DEFAULT_FEES: FeeSettings = { cleaningFee: 0, serviceFeeRate: 0 };
-
-// Concierge WhatsApp number — kept aligned with CheckoutForm so the
-// "Envoyer une demande" CTA in the mobile sheet routes to the same line.
-const CONCIERGE_PHONE = "+212600000000";
 
 const DATE_LOCALE: Record<Locale, string> = {
   fr: "fr-FR",
@@ -56,7 +57,12 @@ function scrollToAvailability() {
   el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-export function BookingWidget({ property, blocked = [], fees = DEFAULT_FEES }: Props) {
+export function BookingWidget({
+  property,
+  blocked = [],
+  fees = DEFAULT_FEES,
+  whatsappNumber = "+212600000000",
+}: Props) {
   const { cleaningFee: CLEANING_FEE, serviceFeeRate: SERVICE_FEE_RATE } = fees;
   const params = useSearchParams();
   const { t, locale } = useI18n();
@@ -124,7 +130,7 @@ export function BookingWidget({ property, blocked = [], fees = DEFAULT_FEES }: P
     .replace("{guests}", String(guests))
     .replace("{pricePerNight}", formatPrice(property.pricePerNight))
     .replace("{total}", formatPrice(totalForMessage));
-  const whatsappHref = `https://wa.me/${CONCIERGE_PHONE.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
     requestMessage,
   )}`;
 

@@ -42,7 +42,7 @@ export function Header() {
         scrolled && "border-gray-100 shadow-sm",
       )}
     >
-      <div className="container-page flex h-16 items-center justify-between gap-6">
+      <div className="container-page flex h-16 items-center justify-between gap-3 sm:gap-6">
         <Logo />
 
         <nav className="hidden items-center gap-2 md:flex">
