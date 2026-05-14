@@ -34,6 +34,8 @@ export async function PATCH(req: Request) {
     "heroImage",
     "heroVideoDesktop",
     "heroVideoMobile",
+    "heroPosterDesktop",
+    "heroPosterMobile",
     "whatsappNumber",
     "email",
     "phone",
@@ -46,8 +48,14 @@ export async function PATCH(req: Request) {
   ] as const;
 
   // Nullable fields — admin may explicitly clear by sending null or "" so
-  // the hero falls back to the static image.
-  const nullable = new Set<string>(["heroVideoDesktop", "heroVideoMobile"]);
+  // the hero falls back to the static image. Poster fields are paired
+  // with their video — clearing a video also clears its poster.
+  const nullable = new Set<string>([
+    "heroVideoDesktop",
+    "heroVideoMobile",
+    "heroPosterDesktop",
+    "heroPosterMobile",
+  ]);
 
   const data: Record<string, string | number | null> = {};
   for (const key of editable) {

@@ -29,6 +29,8 @@ export default async function AdminSettingsPage() {
             heroImage: settings.heroImage,
             heroVideoDesktop: settings.heroVideoDesktop,
             heroVideoMobile: settings.heroVideoMobile,
+            heroPosterDesktop: settings.heroPosterDesktop,
+            heroPosterMobile: settings.heroPosterMobile,
             whatsappNumber: settings.whatsappNumber,
             email: settings.email,
             phone: settings.phone,

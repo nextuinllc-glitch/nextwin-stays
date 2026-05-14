@@ -24,6 +24,8 @@ type Initial = {
   heroImage: string;
   heroVideoDesktop: string | null;
   heroVideoMobile: string | null;
+  heroPosterDesktop: string | null;
+  heroPosterMobile: string | null;
   whatsappNumber: string;
   email: string;
   phone: string;
@@ -154,16 +156,26 @@ export function SettingsForm({ initial }: { initial: Initial }) {
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <VideoSlot
+              kind="desktop"
               label="Desktop · paysage"
               hint="Recommandé : 1920×1080, 8–15 s en boucle"
               value={data.heroVideoDesktop}
-              onChange={(url) => update("heroVideoDesktop", url)}
+              poster={data.heroPosterDesktop}
+              onChange={(url, poster) => {
+                update("heroVideoDesktop", url);
+                update("heroPosterDesktop", poster);
+              }}
             />
             <VideoSlot
+              kind="mobile"
               label="Mobile · portrait"
               hint="Recommandé : 1080×1920, fichier plus léger"
               value={data.heroVideoMobile}
-              onChange={(url) => update("heroVideoMobile", url)}
+              poster={data.heroPosterMobile}
+              onChange={(url, poster) => {
+                update("heroVideoMobile", url);
+                update("heroPosterMobile", poster);
+              }}
             />
           </div>
         </Card>
@@ -386,18 +398,23 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 // Single upload slot — owns its own busy state so the two slots can upload
 // concurrently without coupling. Posts to /api/admin/upload/video and
-// hands the resulting /uploads/… URL back via onChange. Clearing sends
-// null upstream so the settings PATCH knows to wipe the column.
+// hands the resulting video URL + auto-extracted poster URL back via
+// onChange. Clearing sends nulls for both upstream so the settings
+// PATCH wipes the columns together.
 function VideoSlot({
+  kind,
   label,
   hint,
   value,
+  poster,
   onChange,
 }: {
+  kind: "desktop" | "mobile";
   label: string;
   hint: string;
   value: string | null;
-  onChange: (next: string | null) => void;
+  poster: string | null;
+  onChange: (videoUrl: string | null, posterUrl: string | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -409,6 +426,7 @@ function VideoSlot({
     try {
       const fd = new FormData();
       fd.append("file", file);
+      fd.append("kind", kind);
       const res = await fetch("/api/admin/upload/video", {
         method: "POST",
         body: fd,
@@ -418,7 +436,7 @@ function VideoSlot({
         setErr(j?.error ?? "Échec de l'envoi");
         return;
       }
-      onChange(j.src as string);
+      onChange(j.src as string, (j.poster as string | null) ?? null);
     } catch {
       setErr("Erreur réseau");
     } finally {
@@ -438,7 +456,7 @@ function VideoSlot({
         {value && (
           <button
             type="button"
-            onClick={() => onChange(null)}
+            onClick={() => onChange(null, null)}
             className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 transition hover:text-rose-700"
           >
             <Trash2 className="h-3 w-3" />
@@ -468,6 +486,11 @@ function VideoSlot({
       </div>
 
       <p className="mt-2 text-[11px] text-ink-soft">{hint}</p>
+      {value && (
+        <p className="mt-1 text-[11px] font-medium text-emerald-700">
+          {poster ? "✓ Aperçu (poster) auto-généré" : "Aperçu non disponible"}
+        </p>
+      )}
 
       <div className="mt-2 flex items-center gap-2">
         <input
