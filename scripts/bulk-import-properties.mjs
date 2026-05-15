@@ -243,6 +243,7 @@ async function main() {
     const area = meta.area ?? "Marrakech";
     const latitude = meta.lat ?? null;
     const longitude = meta.lng ?? null;
+    const minNights = meta.minNights ?? 1;
 
     if (existing && REFRESH) {
       // Update the existing record with fresh metadata + new images.
@@ -253,6 +254,7 @@ async function main() {
           area,
           latitude,
           longitude,
+          minNights,
           pricePerNight,
           guests,
           bedrooms,

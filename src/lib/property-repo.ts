@@ -84,6 +84,7 @@ function rowToProperty(row: PropertyRow, lang: Lang = "fr"): Property {
       smoking: row.ruleSmoking,
       additional: row.ruleAdditional ?? null,
     },
+    minNights: row.minNights ?? 1,
   };
 }
 

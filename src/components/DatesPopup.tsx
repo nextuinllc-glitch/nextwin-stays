@@ -29,6 +29,10 @@ type Props = {
   // How many months to render below the current one. Default = 11,
   // giving a full year of forward visibility (current month + 11 ahead).
   monthsAhead?: number;
+  // Minimum stay enforced by the per-property rule (apartments = 2,
+  // villa = 3). Default 1 keeps the popup safe when used in contexts
+  // that don't pass it.
+  minNights?: number;
 };
 
 const DATE_LOCALE: Record<Locale, string> = {
@@ -83,6 +87,7 @@ export function DatesPopup({
   pricePerNight,
   currency,
   monthsAhead = 11,
+  minNights = 1,
 }: Props) {
   const { t, locale } = useI18n();
   const router = useRouter();
@@ -171,6 +176,11 @@ export function DatesPopup({
       setPickedTo(null);
       return;
     }
+    // Per-property minimum stay — reject any departure that yields
+    // fewer nights than `minNights`. The user keeps `pickedFrom` and
+    // can pick a later day until the threshold is satisfied.
+    const proposedNights = nightsBetween(pickedFrom, day);
+    if (proposedNights < minNights) return;
     setPickedTo(day);
   };
 

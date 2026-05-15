@@ -62,6 +62,13 @@ model Property {
   ruleSmoking       String  @default("Interdit à l'intérieur")
   ruleAdditional    String?
 
+  // Minimum stay enforced by the calendar UI — date ranges shorter
+  // than this are visually rejected (the second-pick highlights only
+  // become selectable once `minNights` is reached). Default 1 keeps
+  // shorter stays allowed for new rows; per-property overrides come
+  // through the bulk import meta.json or the admin editor.
+  minNights         Int     @default(1)
+
   images       PropertyImage[]
   reservations Reservation[]
 

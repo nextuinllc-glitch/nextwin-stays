@@ -318,6 +318,7 @@ export function BookingWidget({
         blocked={blocked}
         pricePerNight={property.pricePerNight}
         currency={(property.currency ?? "EUR") as "EUR" | "USD"}
+        minNights={property.minNights ?? 1}
       />
 
       {/* Guests panel — desktop-only quick selector reachable from the

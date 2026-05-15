@@ -56,6 +56,11 @@ export type Property = {
     smoking: string;
     additional?: string | null;
   };
+  // Minimum number of nights the booking calendar will accept. Defaults
+  // to 1 if a row doesn't set it. Threaded into <DateRangeCalendar
+  // minNights={…} /> on the property + reserve pages so a too-short
+  // range can't be selected visually.
+  minNights?: number;
 };
 
 const u = (id: string, w = 1200) =>
