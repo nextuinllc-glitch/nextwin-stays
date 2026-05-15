@@ -113,6 +113,43 @@ export function Hero({
       <div className="absolute inset-0 overflow-hidden bg-ink">
         {hasVideo ? (
           <>
+            {/* Persistent <img> poster layer behind the videos. On
+                client-side navigation back to "/" the new <video>
+                element sometimes paints a brief black frame before its
+                own `poster=` decodes — by stacking the poster as a
+                plain <img> underneath, the visitor sees the still
+                photo immediately and the video fades in on top once
+                it's ready. The browser deduplicates the URL with the
+                <video poster> attribute, so this costs no extra fetch. */}
+            {videoPosterMobile && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={videoPosterMobile}
+                alt=""
+                aria-hidden
+                className={cn(
+                  // z-0 keeps the poster image strictly below the
+                  // video layer. Without this it'd render on top
+                  // (positioned elements paint above unpositioned
+                  // siblings in the same stacking context) and hide
+                  // the video entirely.
+                  "absolute inset-0 z-0 h-full w-full object-cover",
+                  bothPresent && "md:hidden",
+                )}
+              />
+            )}
+            {videoPosterDesktop && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={videoPosterDesktop}
+                alt=""
+                aria-hidden
+                className={cn(
+                  "absolute inset-0 z-0 h-full w-full object-cover",
+                  bothPresent && "hidden md:block",
+                )}
+              />
+            )}
             {videoMobile && (
               <video
                 ref={mobileVideoRef}
@@ -125,7 +162,11 @@ export function Hero({
                 disablePictureInPicture
                 disableRemotePlayback
                 className={cn(
-                  "h-full w-full object-cover",
+                  // `relative z-10` puts the video above the poster
+                  // <img> layer (z-0) but below the dark gradient
+                  // overlay (z-20). Without an explicit z the
+                  // positioned <img> would paint on top.
+                  "relative z-10 h-full w-full object-cover",
                   // Hide on ≥md ONLY if there's a separate desktop video
                   // to swap in; otherwise the mobile video doubles as
                   // the desktop fallback so we leave it visible.
@@ -147,7 +188,7 @@ export function Hero({
                 disablePictureInPicture
                 disableRemotePlayback
                 className={cn(
-                  "h-full w-full object-cover",
+                  "relative z-10 h-full w-full object-cover",
                   // Hide on <md ONLY when there's a separate mobile
                   // video; otherwise this video covers both viewports.
                   bothPresent && "hidden md:block",
@@ -169,7 +210,7 @@ export function Hero({
         )}
         {/* Dark gradient overlay — keeps the white headline readable over
             any video frame regardless of brightness. */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/30 to-black/55" />
+        <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/35 via-black/30 to-black/55" />
       </div>
 
       {/* Hero is 85vh on phones / 90vh on ≥md — the 5-point trim on
@@ -177,7 +218,7 @@ export function Hero({
           the wordmark + scroll-cue chevron at the fold. `min-h-` (not
           `h-`) so the content can still grow on very small phones
           where the wordmark + subtitle need more room. */}
-      <div className="relative flex min-h-[92vh] items-center md:min-h-[94vh]">
+      <div className="relative z-30 flex min-h-[92vh] items-center md:min-h-[94vh]">
         <div className="container-page flex w-full flex-col items-center justify-center py-16 text-center sm:py-20 lg:py-24">
           <h1
             className="whitespace-nowrap font-sans text-[20px] font-normal uppercase leading-[1.05] tracking-[0.08em] text-white drop-shadow-[0_6px_24px_rgba(0,0,0,0.45)] min-[380px]:text-2xl min-[380px]:tracking-[0.1em] sm:text-4xl sm:tracking-[0.18em] md:text-5xl md:tracking-[0.2em] lg:text-[68px]"
