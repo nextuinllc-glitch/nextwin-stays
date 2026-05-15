@@ -38,6 +38,7 @@ type Dict = {
     increaseGuests: string;
     selectDatesTitle: string;
     selectDatesHint: string;
+    minNightsHint: string;
     clearDates: string;
     apply: string;
     close: string;
@@ -185,6 +186,7 @@ type Dict = {
     nightSingular: string;
     nightPlural: string;
     selectDatesHint: string;
+    minNightsHint: string;
   };
   reviews: {
     showAll: string; // "Voir tous les {n} avis"
@@ -320,6 +322,7 @@ export const dictionaries: Record<Locale, Dict> = {
       increaseGuests: "Augmenter le nombre d'invités",
       selectDatesTitle: "Sélectionnez les dates",
       selectDatesHint: "Sélectionnez les dates d'arrivée et de départ",
+      minNightsHint: "Durée minimale du séjour : {n} nuits",
       clearDates: "Effacer les dates",
       apply: "Appliquer",
       close: "Fermer",
@@ -473,6 +476,7 @@ export const dictionaries: Record<Locale, Dict> = {
       nightSingular: "nuit",
       nightPlural: "nuits",
       selectDatesHint: "Sélectionnez vos dates",
+      minNightsHint: "Séjour minimum : {n} nuits",
     },
     reviews: {
       showAll: "Voir les {n} avis",
@@ -624,6 +628,7 @@ export const dictionaries: Record<Locale, Dict> = {
       increaseGuests: "Increase guests",
       selectDatesTitle: "Select dates",
       selectDatesHint: "Select arrival and departure dates",
+      minNightsHint: "Minimum stay: {n} nights",
       clearDates: "Clear dates",
       apply: "Apply",
       close: "Close",
@@ -776,6 +781,7 @@ export const dictionaries: Record<Locale, Dict> = {
       nightSingular: "night",
       nightPlural: "nights",
       selectDatesHint: "Select your dates",
+      minNightsHint: "Minimum stay: {n} nights",
     },
     reviews: {
       showAll: "Show all {n} reviews",
@@ -926,6 +932,7 @@ export const dictionaries: Record<Locale, Dict> = {
       increaseGuests: "زيادة عدد الضيوف",
       selectDatesTitle: "اختر التواريخ",
       selectDatesHint: "اختر تواريخ الوصول والمغادرة",
+      minNightsHint: "الحد الأدنى للإقامة: {n} ليالٍ",
       clearDates: "مسح التواريخ",
       apply: "تطبيق",
       close: "إغلاق",
@@ -1078,6 +1085,7 @@ export const dictionaries: Record<Locale, Dict> = {
       nightSingular: "ليلة",
       nightPlural: "ليالٍ",
       selectDatesHint: "اختر تواريخك",
+      minNightsHint: "الحد الأدنى للإقامة: {n} ليالٍ",
     },
     reviews: {
       showAll: "عرض جميع التقييمات ({n})",

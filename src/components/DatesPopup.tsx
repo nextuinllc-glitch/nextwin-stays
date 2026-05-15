@@ -301,6 +301,16 @@ export function DatesPopup({
             {headerTitle}
           </h2>
           <p className="mt-1 text-sm text-ink-muted">{headerSub}</p>
+          {/* Minimum-stay hint — only shown when the property requires
+              more than one night, so a short-stay rental still reads
+              naturally. Tells the user upfront why some too-short
+              ranges won't latch and avoids the "clicked the day but
+              nothing happened" confusion. */}
+          {minNights > 1 && (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-cream-100 px-3 py-1 text-[12px] font-semibold text-ink">
+              {t.search.minNightsHint.replace("{n}", String(minNights))}
+            </p>
+          )}
         </div>
       </header>
 
