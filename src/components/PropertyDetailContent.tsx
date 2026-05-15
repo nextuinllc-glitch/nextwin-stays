@@ -79,12 +79,19 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
   // first paint isn't blank. Falls back to the server-resolved string when
   // the i18n bundle is unavailable (legacy seed data).
   const title = property.i18n ? pick(property.i18n.title, locale) : property.title;
-  const shortDescription = property.i18n
+  const rawShort = property.i18n
     ? pick(property.i18n.shortDescription, locale)
     : property.shortDescription;
   const description = property.i18n
     ? pick(property.i18n.description, locale)
     : property.description;
+  // The bulk-import derives shortDescription from the first line of
+  // the full description — so when the page renders both side-by-side,
+  // the opening sentence appears twice. Strip the short here when it's
+  // already a prefix of the full text; the description carries the
+  // same hook line on its own.
+  const shortDescription =
+    rawShort && description.trim().startsWith(rawShort.trim()) ? "" : rawShort;
 
   // Threshold above which the description gets line-clamped + a
   // "show more" button. Below this, the whole text is shown inline (the

@@ -251,11 +251,31 @@ export function DatesPopup({
   const canSave = Boolean(pickedFrom && pickedTo);
 
   return (
+    <>
+      {/* Desktop backdrop — softens the page behind a centred modal
+          and lets click-outside close. Hidden on mobile (the dialog
+          covers the whole screen anyway). */}
+      <button
+        type="button"
+        aria-hidden
+        onClick={onClose}
+        className="fixed inset-0 z-40 hidden bg-black/40 backdrop-blur-[2px] lg:block"
+      />
     <div
       role="dialog"
       aria-modal="true"
       aria-label={t.search.selectDatesTitle}
-      className="fixed inset-0 z-50 flex flex-col bg-white"
+      // Mobile: full-screen sheet (touch-friendly, vertical scroll for
+      // a year of months). Desktop: centred floating dialog (~880 px
+      // wide, max-h-90vh) that sits above a dimmed backdrop, matching
+      // the booking widget's design rather than dominating the page.
+      className={cn(
+        "fixed z-50 flex flex-col bg-white",
+        // mobile: full-bleed
+        "inset-0",
+        // desktop: anchored centre, capped size, rounded, shadowed
+        "lg:inset-auto lg:left-1/2 lg:top-[8vh] lg:-translate-x-1/2 lg:h-[84vh] lg:w-[min(880px,calc(100vw-48px))] lg:rounded-3xl lg:shadow-2xl lg:ring-1 lg:ring-black/5",
+      )}
     >
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-gray-100 bg-white px-4 py-3 sm:px-6">
@@ -347,6 +367,7 @@ export function DatesPopup({
         </div>
       </footer>
     </div>
+    </>
   );
 }
 

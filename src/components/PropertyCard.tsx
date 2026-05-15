@@ -16,26 +16,35 @@ type Props = {
 
 function shortenKey(a: string): keyof ReturnType<typeof useI18n>["t"]["amenity"] | null {
   const l = a.toLowerCase();
-  // More specific matches first so "Self check-in" doesn't get
-  // swallowed by a broader pattern below.
-  if (l.includes("self check") || l.includes("self-check")) return "selfCheckIn";
-  if (l.includes("housekeeping")) return "housekeeping";
-  if (l.includes("optional chef") || l === "chef") return "chef";
-  if (l.includes("elevator") || l === "lift") return "elevator";
+  // Bilingual matcher — recognises both English and French phrasings
+  // so the catalogue (FR strings in DB) and any future EN-labelled
+  // imports both surface chips correctly. Mirrors the dictionary in
+  // Amenities.tsx's amenityKey().
+  if (l.includes("self check") || l.includes("self-check") || l.includes("arrivée autonome")) return "selfCheckIn";
+  if (l.includes("housekeeping") || l.includes("ménage")) return "housekeeping";
+  if (l.includes("optional chef") || l === "chef" || l.includes("cuisinier")) return "chef";
+  if (l.includes("elevator") || l === "lift" || l.includes("ascenseur")) return "elevator";
   if (l === "bbq" || l.includes("barbecue")) return "bbq";
-  if (l.includes("pool")) return "pool";
-  if (l.includes("kitchen")) return "kitchen";
-  if (l.includes("air conditioning")) return "ac";
-  if (l.includes("wi-fi")) return "wifi";
-  if (l.includes("parking")) return "parking";
+  if (l.includes("cheminée") || l.includes("chimney") || l.includes("fireplace")) return "chimney";
   if (l.includes("hammam")) return "hammam";
-  if (l.includes("breakfast")) return "breakfast";
-  if (l.includes("workspace")) return "workspace";
-  if (l.includes("garden")) return "garden";
-  if (l.includes("rooftop") || l.includes("terrace")) return "terrace";
-  if (l.includes("washer")) return "washer";
+  if (l.includes("pool") || l.includes("piscine")) return "pool";
+  if (l.includes("kitchen") || l.includes("cuisine")) return "kitchen";
+  if (l.includes("heating") || l.includes("chauffage")) return "heating";
+  if (l.includes("air cond") || l.includes("climatisation") || l.includes("clim ")) return "ac";
+  if (l.includes("wi-fi") || l.includes("wifi")) return "wifi";
+  if (l.includes("parking")) return "parking";
+  if (l.includes("breakfast") || l.includes("petit-déjeuner")) return "breakfast";
+  if (l.includes("workspace") || l.includes("bureau")) return "workspace";
+  if (l.includes("rooftop") || l.includes("terrace") || l.includes("terrasse")) return "terrace";
+  if (l.includes("garden") || l.includes("jardin")) return "garden";
+  if (l.includes("balcon") || l.includes("balcony")) return "balcony";
+  if (l.includes("smart tv") || l.includes("télévision") || l.includes("television") || l === "tv" || l.startsWith("tv ")) return "tv";
+  if (l.includes("washer") || l.includes("lave-linge") || l.includes("lave linge")) return "washer";
+  if (l.includes("linge") || l.includes("linens") || l.includes("serviettes")) return "linens";
+  if (l.includes("sécurisée") || l.includes("security") || l.includes("gardien")) return "security";
   if (l.includes("concierge")) return "concierge";
   if (l.includes("tennis")) return "tennis";
+  if (l.includes("langue") || l.includes("language")) return "languages";
   return null;
 }
 
@@ -151,7 +160,11 @@ export function PropertyCard({ property, priority = false }: Props) {
     }
   };
 
-  const topAmenityKeys = pickTopAmenityKeys(property.amenities, 3);
+  // Show up to 5 chips on the card preview — the owner wants WiFi /
+  // Parking / Piscine / Terrasse / Climatisation visible at a glance
+  // since these are the four amenities most queried by guests. The
+  // chip row wraps to two lines on a 320 px mobile if needed.
+  const topAmenityKeys = pickTopAmenityKeys(property.amenities, 5);
 
   return (
     <div
