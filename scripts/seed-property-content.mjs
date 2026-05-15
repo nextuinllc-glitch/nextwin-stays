@@ -47,7 +47,7 @@ const PEARL_GARDEN = {
 // Boilerplate description footer shared by every Pearl Garden listing —
 // the location/neighbourhood context the owner mentioned. Kept short so
 // it doesn't dilute the per-apartment narrative.
-const PG_FOOTER = `
+const PG_FOOTER_FR = `
 📍 EMPLACEMENT — Résidence Pearl Garden
 Située sur le Boulevard Abdelkarim Al Khattabi, la résidence est un complexe sécurisé avec accès 24/7, grande piscine paysagée, jardins luxuriants et parking privé. Idéale pour profiter de Marrakech en toute sérénité.
 
@@ -59,6 +59,32 @@ Située sur le Boulevard Abdelkarim Al Khattabi, la résidence est un complexe s
 
 ✨ EXPÉRIENCE NEXTWIN STAY
 Check-in flexible, conciergerie WhatsApp 7j/7, transferts aéroport sur demande, paniers de bienvenue marocains à la livraison.`;
+
+const PG_FOOTER_EN = `
+📍 LOCATION — Pearl Garden Residence
+Located on Boulevard Abdelkarim Al Khattabi, the residence is a 24/7 secured complex with a large landscaped pool, lush gardens and private parking. The perfect base for exploring Marrakech in complete serenity.
+
+🛣 NEARBY
+• 9 km from Marrakech-Ménara Airport
+• 5 km from Jardin Majorelle & Yves Saint Laurent Museum
+• 6 km from the Medina, Koutoubia & Jemaa el-Fna square
+• Restaurants, supermarket and shops a 5-minute walk away
+
+✨ THE NEXTWIN STAY EXPERIENCE
+Flexible check-in, 7-day WhatsApp concierge, airport transfers on request, Moroccan welcome baskets on arrival.`;
+
+const PG_FOOTER_AR = `
+📍 الموقع — إقامة بيرل غاردن
+تقع على شارع عبد الكريم الخطابي. مجمع آمن على مدار الساعة، مع مسبح واسع وحدائق غناء وموقف سيارات خاص. القاعدة المثالية لاستكشاف مراكش في هدوء تام.
+
+🛣 المعالم القريبة
+• 9 كم من مطار مراكش-المنارة
+• 5 كم من حديقة ماجوريل ومتحف إيف سان لوران
+• 6 كم من المدينة القديمة، صومعة الكتبية وساحة جامع الفنا
+• مطاعم وسوبر ماركت ومحلات على بُعد 5 دقائق سيراً على الأقدام
+
+✨ تجربة NEXTWIN STAY
+تسجيل وصول مرن، خدمة كونسيرج عبر واتساب 7 أيام، خدمة نقل من المطار عند الطلب، سلة ترحيب مغربية عند الوصول.`;
 
 // Each Pearl Garden property gets its own "narrative" — the bullet
 // points the owner wrote on WhatsApp, re-styled into editorial copy
@@ -288,18 +314,173 @@ Personnel sur place sur demande : cuisinier, ménage quotidien, gardiennage 24/7
   },
 };
 
-async function writeFolder(slug, data, baseAmenities = null, baseFooter = "") {
+// EN narratives — same structure as the FR narrative, written for
+// English-speaking guests. Keep parity in length + tone so the page
+// doesn't visually shrink when the user toggles locale.
+const NARRATIVES_EN = {
+  "d32-style-urbain-chic": `A contemporary, refined design apartment — modern yet warm, made for travellers with an eye for detail.
+
+The graphite-grey living room features a deep sectional sofa, a backlit smart TV, a sculptural ceiling fan and accents of mustard yellow. The open kitchen anchors the room around a bar with an architectural pendant light.
+
+The "dark luxury" bedroom dresses a double bed in premium black & white linens with wall sconces, dark parquet and a cocooning atmosphere. The balcony opens onto an uninterrupted view of the large pool and the residence's landscaped gardens.`,
+  "appt-54-glamour-prestige": `The most glamorous apartment in the collection — artistic, luxurious decoration conceived like a private gallery.
+
+A royal burgundy velvet sofa anchors the living room, paired with multiple gilded chandeliers, gold sconces and framed artworks on the walls. The bedroom plays modern elegance: black & white bed, midnight-blue chandelier, lavishly decorated hallway.
+
+The hero feature: a wide private terrace with a hanging swing, lounge sofa and a sweeping view of the pool and gardens — magical by day, enchanting at night with the gold LED lighting and silvered stucco finishes.`,
+  "appt-duplex-26-double-hauteur": `An exceptional duplex sculpted around dramatic double-height architecture. The suspended staircase separates a cathedral-like living room, bathed in light, from a cocooning sleeping area upstairs.
+
+The ground floor opens onto a private planted patio — perfect for Moroccan breakfasts in the shade of the lemon tree. The island kitchen, equipped with induction hob and oven, dialogues with the living room through a bar counter.
+
+Upstairs: a master suite in noble materials (linen, dark wood, Berber wool) and a second cosy bedroom. Both bathrooms in contemporary zellige.`,
+  "appart-36-standing-royal": `The most refined apartment in the collection — royal decor, noble materials, an ivory and pale-gold palette for timeless elegance.
+
+The double-aspect living room is flooded with daylight. Deep sofas in écru linen, a Berber rug, a travertine coffee table and sculpted woodwork frame a large flat-screen TV. The kitchen integrates into the living room behind a lacquered bar.
+
+Both bedrooms are suites — king-size beds, padded headboards, Venetian mirrors and cream-marble bathrooms with extra-large rain showers. Open views of the residence's pool and palms.`,
+  "appart-39-luxe-authenticite": `A luxury apartment blending modernity with authentic Moroccan touches. The art of zellige meets contemporary design in a subtle dialogue.
+
+The living room organises around a deep taupe sectional sofa, a modern fireplace and brushed-brass light fixtures. An antique Kilim rug recalls Berber heritage; nude tadelakt walls bring a mineral softness.
+
+The bedroom is a cocoon: carved wooden headboard, raffia pendants, washed-linen bedding. The tadelakt-finished bathroom features a walk-in rain shower and locally-crafted Moroccan toiletries.`,
+  "appart-22-duplex-moderne": `A modern, warm duplex — perfect for couples or small families wanting a Marrakech escape.
+
+Ground floor: an open living room with an integrated TV-fireplace, a generous sectional sofa and floor-to-ceiling glazing that lets daylight in all day. Fully-equipped kitchen — bright, functional.
+
+Upstairs: a quiet, polished master bedroom and a modern bathroom. The balcony overlooks the large pool and landscaped gardens of Pearl Garden.`,
+  "appart-84-premium-terrasse-vue-ville": `A premium apartment on an upper floor with an open perspective over Marrakech and the distant palm groves.
+
+The ultra-modern living room features a large L-shaped sofa, a wide flat-screen TV and signature furniture. Sliding glass doors open onto a private terrace where you take your meals facing the sunset over the city.
+
+The master bedroom has a king-size bed, bespoke dressing room and a light-marble bathroom with a rain shower. The kitchen, equipped with Bosch / Whirlpool appliances, is ready for longer stays.`,
+  "appt-63-luxe-terrasse-piscine": `A high-end apartment in one of Pearl Garden's most beautiful wings — luxe finishes and abundant natural light.
+
+The living room decants a golden-beige palette: cream bouclé sofa, hand-woven rug, travertine pendant lights and a built-in television. The open kitchen integrates a central island and a wine fridge. A wide furnished terrace extends the living space outdoors with direct views of the pool and palms.
+
+Both bedrooms are master suites with their own en-suite bathroom, bespoke dressing rooms and private balconies.`,
+  "appt-57-moderne-complet": `A tastefully decorated apartment, ready to welcome you on arrival. Functional design, modern furniture, soothing atmosphere.
+
+The open living room sits around a comfortable sofa, a designer coffee table and a TV corner with Netflix. The fully-equipped kitchen lets you cook your Moroccan or European dishes with ease.
+
+The main bedroom is dressed with refined Scandinavian-inspired furniture, and the bathroom offers an Italian walk-in shower and complimentary organic toiletries. Ideal for business travellers or short stays.`,
+  "appt-76-de-luxe": `Welcome to an exceptional apartment in the heart of Pearl Garden. Every detail has been considered for high-end comfort.
+
+The living room, bathed in light, is furnished with a beige-linen sofa, designer armchairs, a built-in bookcase and a wall-mounted television. The fully-equipped open kitchen features a wine fridge and a breakfast nook.
+
+The master bedroom offers a large bed, long-staple cotton linens, and blackout curtains for perfect nights. Cream-marble bathroom, extra-large Italian shower, LED-lit mirror.`,
+  "appartement-gueliz-luxe-modernite": `A high-standing apartment in Marrakech's most prized district — Gueliz, the nerve centre of the new town, steps from the Majorelle Garden, the YSL Museum and the city's finest tables.
+
+The Marrakchi Art Deco living room marries black marble, brushed brass and celadon velvet. The fully-equipped kitchen is concealed behind sliding doors. The balcony opens onto the main avenue.
+
+Both bedrooms are suites — one in taupe and pale wood, the other more dramatic in petrol blue. Marble bathrooms with extra-large rain showers.`,
+  "villa-prestige-route-agadir": `An exceptional villa for unforgettable holidays — 3 bedrooms, 3 bathrooms, a year-round heated private pool and a large landscaped garden on the Agadir Road, 15 minutes from central Marrakech.
+
+The architecture combines local stone and raw tadelakt, opening onto a large covered terrace with a lounge area, dining table for 12 and a barbecue corner. The 12-metre heated pool is lined with sun loungers, palms and bougainvillea — comfortable swimming even in winter.
+
+Inside: a double living room with central fireplace, a formal dining room, and a professional fully-equipped kitchen. The 3 bedrooms are suites — the master suite has a marble bathroom, private hammam and dressing room.
+
+On-site staff available on request: chef, daily housekeeping, 24/7 caretaker.`,
+};
+
+// AR narratives — Modern Standard Arabic, RTL renders natively.
+const NARRATIVES_AR = {
+  "d32-style-urbain-chic": `شقة بتصميم عصري أنيق — أجواء حديثة راقية، مصمَّمة للمسافرين الباحثين عن الذوق الرفيع.
+
+صالة جلوس رمادية أنيقة مع أريكة زاوية عميقة، شاشة ذكية بإضاءة خلفية، مروحة سقف بتصميم مميز ولمسات صفراء دافئة. مطبخ مفتوح حول بار مع إضاءة معلقة.
+
+غرفة نوم بأجواء "الفخامة الداكنة" — سرير مزدوج بمفروشات سوداء وبيضاء فاخرة، إضاءات جدارية، أرضية باركيه داكنة وأجواء حميمية. تطل الشرفة على المسبح الكبير والحدائق الخضراء للإقامة.`,
+  "appt-54-glamour-prestige": `الشقة الأكثر فخامة في المجموعة — ديكور فني وفاخر مصمَّم كأنه معرض فني خاص.
+
+أريكة من المخمل العنابي الملكي مع ثريات ذهبية متعددة وإضاءات جدارية ذهبية ولوحات فنية مؤطرة. غرفة النوم تجمع بين الأناقة الحديثة: سرير أبيض وأسود، ثريا زرقاء نيلية وممر مزخرف بعناية.
+
+الميزة الأبرز: شرفة خاصة كبيرة مع أرجوحة معلقة وأريكة استرخاء وإطلالة بانورامية على المسبح والحدائق — ساحرة نهاراً، رومانسية ليلاً مع الإضاءة الذهبية وتشطيبات الجص الفضي.`,
+  "appt-duplex-26-double-hauteur": `دوبلكس استثنائي بهندسة معمارية بارتفاع مزدوج مذهل. درج معلق يفصل صالة جلوس فسيحة مغمورة بالضوء عن مساحة النوم في الطابق العلوي.
+
+الطابق الأرضي يفتح على فناء خاص بأشجار — مثالي للإفطارات المغربية تحت ظل شجرة الليمون. مطبخ بجزيرة، مجهز بموقد كهربائي وفرن، يتصل بالصالة عبر بار.
+
+الطابق العلوي: جناح رئيسي بمواد فاخرة (كتان، خشب داكن، صوف أمازيغي) وغرفة نوم ثانية مريحة. الحماماتان مزيَّنتان بالزليج العصري.`,
+  "appart-36-standing-royal": `الشقة الأكثر رقياً في مجموعتنا — ديكور ملكي، مواد نبيلة، لوحة عاجية وذهبية فاتحة لأناقة خالدة.
+
+صالة جلوس مزدوجة الإطلالة مغمورة بضوء النهار. أرائك عميقة بكتان أبيض، سجادة أمازيغية، طاولة من رخام التراڤرتين، وأعمال خشبية محفورة تحيط بتلفاز كبير. المطبخ مدمج في الصالة مع بار بتشطيب لاكيه.
+
+غرفتا النوم جناحان — أسرّة فاخرة، مساند رأس منجدة، مرايا فينيسية، حمامات بالرخام الكريمي مع دش مطر إيطالي. إطلالات مفتوحة على المسبح ونخيل الإقامة.`,
+  "appart-39-luxe-authenticite": `شقة فاخرة تجمع بين الحداثة ولمسات الأصالة المغربية. الزليج التقليدي يلتقي بالتصميم العصري في حوار رفيع.
+
+صالة الجلوس تنتظم حول أريكة زاوية كبيرة بلون مائل للبني، موقد عصري وإضاءات بالنحاس المصقول. سجادة كيليم عتيقة تذكِّر بالموروث الأمازيغي؛ جدران من التادلكت تضيف نعومة معدنية.
+
+غرفة النوم مكان حميم: رأس سرير من الخشب المنحوت، إضاءات معلقة من الرافيا، مفروشات كتان مغسول. حمام التادلكت مزود بدش مطر إيطالي ومنتجات تجميل مغربية مصنوعة يدوياً.`,
+  "appart-22-duplex-moderne": `دوبلكس عصري ودافئ — مثالي للأزواج أو العائلات الصغيرة الباحثة عن استراحة مراكشية.
+
+الطابق الأرضي: صالة مفتوحة مع تلفاز بإطار موقد، أريكة زاوية واسعة ونوافذ زجاجية كبيرة تسمح بدخول ضوء النهار طوال اليوم. مطبخ مجهز بالكامل، مشرق وعملي.
+
+الطابق العلوي: غرفة نوم رئيسية هادئة وأنيقة، وحمام عصري. تطل الشرفة على المسبح الكبير وحدائق إقامة بيرل غاردن.`,
+  "appart-84-premium-terrasse-vue-ville": `شقة فاخرة في طابق علوي مع منظور مفتوح على مدينة مراكش وواحات النخيل في الأفق.
+
+صالة جلوس عصرية للغاية مع أريكة كبيرة بشكل حرف L، تلفاز كبير وأثاث مميز. الأبواب الزجاجية المنزلقة تفتح على شرفة خاصة لتناول الوجبات في مواجهة غروب الشمس على المدينة.
+
+غرفة النوم الرئيسية بسرير فاخر، دريسنغ مخصَّص وحمام بالرخام الفاتح مع دش مطر. المطبخ مجهز بأجهزة Bosch / Whirlpool، جاهز للإقامات الطويلة.`,
+  "appt-63-luxe-terrasse-piscine": `شقة راقية في أحد أجمل أجنحة بيرل غاردن — تشطيبات فاخرة وإضاءة طبيعية وفيرة.
+
+صالة الجلوس بلوحة بيج ذهبية: أريكة بوكلية كريمية، سجادة منسوجة يدوياً، إضاءات معلقة من الترافرتين وتلفاز مدمج. مطبخ مفتوح بجزيرة مركزية وثلاجة نبيذ. شرفة واسعة مفروشة تمتد بمساحة المعيشة إلى الخارج بإطلالة مباشرة على المسبح والنخيل.
+
+غرفتا النوم جناحان رئيسيان مع حمام خاص بكل منهما، خزائن مخصصة وشرفات خاصة.`,
+  "appt-57-moderne-complet": `شقة مزينة بذوق رفيع وجاهزة لاستقبالك فور وصولك. تصميم عملي، أثاث عصري، أجواء مريحة.
+
+صالة مفتوحة حول أريكة مريحة، طاولة قهوة بتصميم مميز وزاوية تلفاز مع نتفليكس. مطبخ مجهز بالكامل يتيح لك تحضير أطباقك المغربية أو الأوروبية بسهولة.
+
+غرفة النوم الرئيسية بأثاث إسكندنافي بسيط، والحمام يضم دشاً إيطالياً ومنتجات تجميل عضوية. مثالي لرجال الأعمال أو الإقامات القصيرة.`,
+  "appt-76-de-luxe": `أهلاً بك في شقة استثنائية في قلب إقامة بيرل غاردن. كل التفاصيل صُمِّمت من أجل راحة فاخرة.
+
+صالة جلوس مغمورة بالضوء مفروشة بأريكة كتانية بلون بيج، كراسي بتصميم مميز، مكتبة مدمجة وتلفاز كبير على الحائط. مطبخ مفتوح مجهز بالكامل مع ثلاجة نبيذ وركن للإفطار.
+
+غرفة النوم الرئيسية بسرير كبير، مفروشات قطنية فاخرة، وستائر معتمة لنوم مثالي. حمام رخامي كريمي، دش إيطالي واسع، مرآة بإضاءة LED.`,
+  "appartement-gueliz-luxe-modernite": `شقة راقية في الحي الأكثر تميزاً في مراكش — جليز، قلب المدينة الجديدة، على بُعد خطوات من حديقة ماجوريل ومتحف إيف سان لوران وأرقى مطاعم المدينة.
+
+صالة الجلوس بروح آرت ديكو مراكشية تجمع بين الرخام الأسود، النحاس المصقول والمخمل الفاتح. مطبخ مجهز بالكامل مخفي خلف أبواب منزلقة. الشرفة تطل على الجادة الرئيسية.
+
+غرفتا النوم جناحان — الأولى بألوان البيج والخشب الفاتح، الثانية أكثر جرأة بالأزرق البترولي. حمامات رخامية بدش مطر إيطالي.`,
+  "villa-prestige-route-agadir": `فيلا استثنائية لعطلات لا تُنسى — 3 غرف نوم، 3 حمامات، مسبح خاص مُدفأ طوال السنة وحديقة واسعة على طريق أغادير، على بُعد 15 دقيقة من وسط مراكش.
+
+تجمع الهندسة بين الحجر المحلي والتادلكت الخام، وتفتح على تراس واسع مغطى مع صالة استرخاء وطاولة طعام لـ 12 شخصاً وركن للشواء. المسبح المُدفأ بطول 12 متراً محاط بالأرائك والنخيل والجهنميات — سباحة مريحة حتى في الشتاء.
+
+من الداخل: صالة جلوس مزدوجة مع موقد مركزي، غرفة طعام رسمية، ومطبخ احترافي مجهز بالكامل. غرف النوم الثلاث أجنحة — الجناح الرئيسي يحوي حماماً رخامياً، حماماً خاصاً (هَمّام) وغرفة ملابس.
+
+طاقم خدمة عند الطلب: طاهي، تنظيف يومي، حارس على مدار الساعة.`,
+};
+
+async function writeFolder(
+  slug,
+  data,
+  baseAmenities = null,
+  footers = { fr: "", en: "", ar: "" },
+) {
   const dir = resolve(ROOT, slug);
   await mkdir(dir, { recursive: true });
 
-  const description = `${data.narrative.trim()}\n${baseFooter}`.trim();
-  const infoText = `${data.titleFr}\n\n${description}\n`;
+  // FR description (info.txt) is the canonical body — title on line 1,
+  // narrative + shared footer below. Bulk-import reads from here.
+  const descFr = `${data.narrative.trim()}\n${footers.fr}`.trim();
+  const infoText = `${data.titleFr}\n\n${descFr}\n`;
   await writeFile(resolve(dir, "info.txt"), infoText, "utf-8");
+
+  // EN / AR narratives composed alongside their footer counterparts.
+  // Empty if the slug has no translation entry yet — the public page
+  // falls back to FR via pickField() in that case.
+  const narrativeEn = NARRATIVES_EN[slug] ?? null;
+  const narrativeAr = NARRATIVES_AR[slug] ?? null;
+  const descEn = narrativeEn ? `${narrativeEn.trim()}\n${footers.en}`.trim() : null;
+  const descAr = narrativeAr ? `${narrativeAr.trim()}\n${footers.ar}`.trim() : null;
+  const shortEn = descEn?.split("\n").find((l) => l.trim())?.slice(0, 180) ?? null;
+  const shortAr = descAr?.split("\n").find((l) => l.trim())?.slice(0, 180) ?? null;
 
   const type = data.type ?? "apartment";
   const meta = {
     titleEn: data.titleEn,
     titleAr: data.titleAr,
+    descriptionEn: descEn,
+    descriptionAr: descAr,
+    shortDescriptionEn: shortEn,
+    shortDescriptionAr: shortAr,
     price: data.pricePerNight,
     guests: data.guests,
     bedrooms: data.bedrooms,
@@ -319,14 +500,17 @@ async function writeFolder(slug, data, baseAmenities = null, baseFooter = "") {
 }
 
 async function main() {
+  const pgFooters = { fr: PG_FOOTER_FR, en: PG_FOOTER_EN, ar: PG_FOOTER_AR };
   for (const [slug, data] of Object.entries(PG_UNITS)) {
-    await writeFolder(slug, data, PEARL_GARDEN.baseAmenities, PG_FOOTER);
+    await writeFolder(slug, data, PEARL_GARDEN.baseAmenities, pgFooters);
   }
+  // Gueliz + Villa are stand-alone — no shared footer.
+  const emptyFooters = { fr: "", en: "", ar: "" };
   for (const [slug, data] of Object.entries(GUELIZ)) {
-    await writeFolder(slug, data);
+    await writeFolder(slug, data, null, emptyFooters);
   }
   for (const [slug, data] of Object.entries(VILLA)) {
-    await writeFolder(slug, data);
+    await writeFolder(slug, data, null, emptyFooters);
   }
   console.log("\nSeed complete. Now run: node scripts/bulk-import-properties.mjs --refresh");
 }

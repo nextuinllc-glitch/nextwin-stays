@@ -8,23 +8,24 @@ type LogoProps = {
   variant?: "default" | "light";
 };
 
-// Editorial monogram + wordmark — modelled on the signage of high-end
-// hospitality brands (Aman, Belmond, Cheval Blanc).
+// Moorish-arch monogram + wordmark — modelled on the engraved signage
+// of high-end hospitality brands (Aman, Belmond, Cheval Blanc), but
+// rooted in Marrakech architecture: a slim horseshoe-arch silhouette
+// (the iconic keyhole doorway you walk through at any riad or palace)
+// frames the editorial N, with a tiny base line that grounds the arch
+// like a stone threshold.
 //
-//   ┌───┐  NEXTWIN · STAY
-//   │ N │  ─ MARRAKECH
-//   └───┘
+//   ╭─╮  NEXTWIN · STAY
+//   │N│  ─ MARRAKECH
+//   ─ ─
 //
-// Responsive sizing is the bigger story than the visual style: this
-// mark must clear an iPhone SE / mini (320–375 px viewport) WITH the
-// hamburger menu beside it. Mobile uses a compact monogram + tighter
-// letter-spacing; everything opens up at the `sm` breakpoint so
-// tablets and desktops get the breathy luxury proportions.
+// Responsive sizing keeps the mark compact on iPhone SE / mini /
+// 11 Pro (320–375 px viewport) so the Logo + hamburger never crowd.
+// At `sm` and `md` everything opens up to luxury proportions.
 export function Logo({ className, variant = "default" }: LogoProps) {
   const isLight = variant === "light";
   const inkTone = isLight ? "text-white" : "text-ink";
   const subtleTone = isLight ? "text-white/60" : "text-ink-soft";
-  const markBorder = isLight ? "border-white/70" : "border-brand-500/70";
   const markStroke = isLight ? "text-white" : "text-brand-600";
   const dotTone = isLight ? "text-white/60" : "text-brand-500";
 
@@ -40,23 +41,28 @@ export function Logo({ className, variant = "default" }: LogoProps) {
       <span
         aria-hidden
         className={cn(
-          "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors min-[380px]:h-8 min-[380px]:w-8 sm:h-9 sm:w-9",
-          markBorder,
+          "inline-flex h-7 w-7 shrink-0 items-center justify-center transition-colors min-[380px]:h-8 min-[380px]:w-8 sm:h-9 sm:w-9",
           markStroke,
         )}
       >
         <svg
-          viewBox="0 0 20 20"
-          className="h-[15px] w-[15px] min-[380px]:h-4 min-[380px]:w-4 sm:h-[18px] sm:w-[18px]"
+          viewBox="0 0 24 24"
+          className="h-full w-full"
           fill="none"
           stroke="currentColor"
-          strokeWidth={1.4}
-          strokeLinecap="butt"
+          strokeWidth={1.3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          {/* Editorial N — hairline verticals connected by a single
-              diagonal, sized to leave a sliver of negative space
-              inside the ring on every side. */}
-          <path d="M5 15.5V4.5L15 15.5V4.5" />
+          {/* Horseshoe arch — two columns + a 270° arc on top, mirroring
+              Marrakech's signature keyhole doorways. */}
+          <path d="M4 22 L4 11 A 8 8 0 0 1 20 11 L 20 22" />
+          {/* Tiny base line — grounds the arch like a stone threshold. */}
+          <path d="M3 22 L21 22" strokeWidth="1" opacity="0.85" />
+          {/* The N — hairline verticals connected by a single
+              diagonal, sized to sit inside the arch with breathing
+              room on every side. */}
+          <path d="M8.5 17 V9 L 15.5 17 V9" />
         </svg>
       </span>
 

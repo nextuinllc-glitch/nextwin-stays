@@ -78,6 +78,13 @@ type Dict = {
     bathrooms: string;
   };
   amenity: {
+    heating: string;
+    balcony: string;
+    tv: string;
+    linens: string;
+    security: string;
+    chimney: string;
+    languages: string;
     pool: string;
     kitchen: string;
     ac: string;
@@ -359,16 +366,16 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     amenity: {
       pool: "Piscine",
-      kitchen: "Cuisine",
+      kitchen: "Cuisine équipée",
       ac: "Climatisation",
-      wifi: "Wi-Fi",
-      parking: "Parking",
+      wifi: "Wi-Fi rapide",
+      parking: "Parking privé",
       hammam: "Hammam",
       breakfast: "Petit-déjeuner",
       workspace: "Bureau",
       garden: "Jardin",
       terrace: "Terrasse",
-      washer: "Machine à laver",
+      washer: "Lave-linge",
       concierge: "Conciergerie",
       tennis: "Tennis",
       bbq: "Barbecue",
@@ -376,6 +383,13 @@ export const dictionaries: Record<Locale, Dict> = {
       elevator: "Ascenseur",
       chef: "Chef sur demande",
       selfCheckIn: "Arrivée autonome",
+      heating: "Chauffage",
+      balcony: "Balcon",
+      tv: "Télévision écran plat",
+      linens: "Linge de lit & serviettes premium",
+      security: "Résidence sécurisée 24/7",
+      chimney: "Cheminée",
+      languages: "Langues : FR · AR · EN",
     },
     footer: {
       blurb:
@@ -655,6 +669,13 @@ export const dictionaries: Record<Locale, Dict> = {
       bathrooms: "bathrooms",
     },
     amenity: {
+      heating: "Heating",
+      balcony: "Balcony",
+      tv: "Flat-screen TV",
+      linens: "Premium linens & towels",
+      security: "24/7 secure residence",
+      chimney: "Fireplace",
+      languages: "Languages: FR · AR · EN",
       pool: "Pool",
       kitchen: "Kitchen",
       ac: "AC",
@@ -950,6 +971,13 @@ export const dictionaries: Record<Locale, Dict> = {
       bathrooms: "حمامات",
     },
     amenity: {
+      heating: "تدفئة",
+      balcony: "شرفة",
+      tv: "تلفاز بشاشة مسطحة",
+      linens: "أغطية وفوط فاخرة",
+      security: "إقامة آمنة 24/7",
+      chimney: "موقد",
+      languages: "اللغات: FR · AR · EN",
       pool: "مسبح",
       kitchen: "مطبخ",
       ac: "تكييف",
