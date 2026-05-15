@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -59,6 +59,38 @@ export function Hero({
   // seed if the prop wasn't threaded through (admin previews), so the
   // dateline never disappears in the wrong context.
   const heroTagline = tagline?.[locale]?.trim() ?? "Maisons de Marrakech";
+
+  // iOS Safari quirk: the `autoplay` attribute is honoured at HTML-
+  // parse time, but when React mounts the <video> via JS (which
+  // happens on every client-side navigation back to "/"), Safari
+  // sometimes refuses to auto-start the new element and leaves it
+  // frozen on its poster frame. Calling .play() explicitly on mount,
+  // and again whenever the page is restored from the bfcache, makes
+  // playback start reliably regardless of how the user got here.
+  const mobileVideoRef = useRef<HTMLVideoElement>(null);
+  const desktopVideoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const tryPlay = (v: HTMLVideoElement | null) => {
+      if (!v) return;
+      const p = v.play();
+      if (p && typeof p.catch === "function") {
+        // Autoplay can still be blocked (Low Power Mode, user setting).
+        // Swallow the rejection — the poster stays visible in that
+        // case rather than throwing in the console.
+        p.catch(() => {});
+      }
+    };
+    tryPlay(mobileVideoRef.current);
+    tryPlay(desktopVideoRef.current);
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        tryPlay(mobileVideoRef.current);
+        tryPlay(desktopVideoRef.current);
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, [videoMobile, videoDesktop]);
   const hasVideo = Boolean(videoDesktop || videoMobile);
   // Both ends present? Render two `<video>` elements with mutually-
   // exclusive Tailwind visibility so each viewport sees ONE consistent
@@ -70,12 +102,20 @@ export function Hero({
   const bothPresent = Boolean(videoDesktop && videoMobile);
 
   return (
-    <section className="relative bg-ink">
+    // -mt-16 pulls the section up under the transparent home-page
+    // header (Header.tsx renders bg-transparent when overHero is
+    // true) so the video starts at Y=0 and the Logo + nav appear to
+    // float directly on top of it, edge-to-edge. The header's 64 px
+    // height is restored on the inner content by the flex centring,
+    // so the wordmark + search bar stay vertically balanced within
+    // the visible video area.
+    <section className="relative -mt-16 bg-ink">
       <div className="absolute inset-0 overflow-hidden bg-ink">
         {hasVideo ? (
           <>
             {videoMobile && (
               <video
+                ref={mobileVideoRef}
                 autoPlay
                 muted
                 loop
@@ -97,6 +137,7 @@ export function Hero({
             )}
             {videoDesktop && (
               <video
+                ref={desktopVideoRef}
                 autoPlay
                 muted
                 loop
@@ -136,7 +177,7 @@ export function Hero({
           the wordmark + scroll-cue chevron at the fold. `min-h-` (not
           `h-`) so the content can still grow on very small phones
           where the wordmark + subtitle need more room. */}
-      <div className="relative flex min-h-[85vh] items-center md:min-h-[90vh]">
+      <div className="relative flex min-h-[92vh] items-center md:min-h-[94vh]">
         <div className="container-page flex w-full flex-col items-center justify-center py-16 text-center sm:py-20 lg:py-24">
           <h1
             className="whitespace-nowrap font-sans text-[20px] font-normal uppercase leading-[1.05] tracking-[0.08em] text-white drop-shadow-[0_6px_24px_rgba(0,0,0,0.45)] min-[380px]:text-2xl min-[380px]:tracking-[0.1em] sm:text-4xl sm:tracking-[0.18em] md:text-5xl md:tracking-[0.2em] lg:text-[68px]"

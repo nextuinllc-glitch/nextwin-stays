@@ -46,6 +46,7 @@ type Dict = {
   };
   weekdays: string[]; // 7 entries Sun→Sat
   home: {
+    sectionEyebrow: string;
     sectionTitle: string;
     bookingSimpleTitle: string;
     bookingSimpleSubtitle: string;
@@ -320,6 +321,7 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
     home: {
+      sectionEyebrow: "Marrakech · Locations d'exception",
       sectionTitle: "Nos meilleures propriétés",
       bookingSimpleTitle: "La réservation simplifiée",
       bookingSimpleSubtitle:
@@ -616,6 +618,7 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     home: {
+      sectionEyebrow: "Marrakech · Curated stays",
       sectionTitle: "Our best properties",
       bookingSimpleTitle: "Booking made simple",
       bookingSimpleSubtitle:
@@ -910,6 +913,7 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     weekdays: ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"],
     home: {
+      sectionEyebrow: "مراكش · إقامات منتقاة",
       sectionTitle: "أفضل عقاراتنا",
       bookingSimpleTitle: "حجز مبسط",
       bookingSimpleSubtitle:

@@ -66,6 +66,10 @@ const nextConfig = {
   // it resolves to the real `node_modules/ffmpeg-static/ffmpeg` binary
   // when /api/admin/upload/video extracts a poster.
   serverExternalPackages: ["ffmpeg-static"],
+  // Hide the Next.js dev-mode floating "N" badge (the build-activity
+  // indicator in the bottom-left). It never renders in production but
+  // confuses the eye while previewing the cinematic hero locally.
+  devIndicators: false,
   ...(isExport && {
     output: "export",
     trailingSlash: true,

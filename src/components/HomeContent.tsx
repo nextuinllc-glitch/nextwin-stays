@@ -35,15 +35,16 @@ export function HomeContent({ featured, hero, pageContent }: Props) {
         tagline={hero.tagline}
       />
 
-      {/* Editorial section header — large breathing space, gold-rule
-          divider in lieu of decorative chrome. `#properties` is the
-          anchor target for the hero's scroll-cue chevron, so a tap on
-          the pill smoothly scrolls the user from the cinematic hero into
-          the curated catalogue. */}
-      <section id="properties" className="container-page pb-4 pt-24 sm:pt-32">
+      {/* Editorial section header — tighter top padding so the
+          "Marrakech · Curated stays" eyebrow + the section title peek
+          above the fold on first load and tell the visitor there's
+          more to scroll, instead of leaving them looking at a pure
+          black band under the hero. `#properties` is the anchor
+          target for the hero's scroll-cue chevron. */}
+      <section id="properties" className="container-page pb-4 pt-8 sm:pt-12">
         <div className="flex flex-col items-center gap-8 text-center">
           <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-brand-600">
-            Marrakech · Curated stays
+            {get("sectionEyebrow", t.home.sectionEyebrow)}
           </span>
           <h2 className="font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
             {get("sectionTitle", t.home.sectionTitle)}
