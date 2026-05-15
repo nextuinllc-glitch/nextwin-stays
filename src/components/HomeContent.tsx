@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowRight, ShieldCheck, MessageCircle, Sparkles } from "lucide-react";
 import { Hero } from "@/components/Hero";
 import { PropertyGrid } from "@/components/PropertyGrid";
 import { CategoryButtons } from "@/components/CategoryButtons";
-import { ShieldCheck, MessageCircle, Sparkles } from "lucide-react";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { Property } from "@/lib/properties";
 import type { HeroSettings } from "@/lib/settings-repo";
@@ -56,6 +57,22 @@ export function HomeContent({ featured, hero, pageContent }: Props) {
 
       <div className="pt-12 sm:pt-16">
         <PropertyGrid properties={featured} />
+
+        {/* "Voir tout" CTA — only shown when there are MORE properties
+            in the catalogue than what the home page features (otherwise
+            it'd link to the same six the user just scrolled through).
+            Rendered as an editorial outline pill, centred, with a soft
+            gold hairline beneath it for visual breath. */}
+        <div className="container-page mt-12 flex flex-col items-center gap-5 sm:mt-16">
+          <Link
+            href="/properties"
+            className="group inline-flex items-center gap-2 rounded-full border border-ink/80 bg-transparent px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.24em] text-ink transition hover:border-brand-600 hover:bg-brand-600 hover:text-white"
+          >
+            {get("seeAllCta", "Voir toutes les propriétés")}
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+          <span aria-hidden className="block h-px w-12 bg-brand-500/40" />
+        </div>
       </div>
 
       <section className="mt-24 bg-cream-100 sm:mt-32">

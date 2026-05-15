@@ -36,6 +36,7 @@ export const PAGE_SCHEMAS: Record<PageKey, Field[]> = {
   home: [
     { key: "sectionEyebrow", label: "Petite ligne au-dessus du titre", hint: "Ex. \"Marrakech · Locations d'exception\"", type: "text", group: "Properties section" },
     { key: "sectionTitle", label: "Titre de la section principale", type: "text", group: "Properties section" },
+    { key: "seeAllCta", label: "CTA \"Voir toutes les propriétés\"", hint: "Pilule outline sous la grille", type: "text", group: "Properties section" },
     { key: "bookingSimpleTitle", label: "Titre du bloc \"Booking made simple\"", type: "text", group: "Booking simple" },
     { key: "bookingSimpleSubtitle", label: "Sous-titre", type: "textarea", group: "Booking simple" },
     { key: "stepCuratedTitle", label: "Étape 1 — Titre", type: "text", group: "Steps" },
