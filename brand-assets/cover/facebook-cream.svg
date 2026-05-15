@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1640" height="624" viewBox="0 0 1640 624">
+  <rect x="0" y="0" width="1640" height="624" fill="#FAF8F4" />
+  <svg x="443.36" y="180.96" width="262.08" height="262.08" viewBox="0 0 24 24">
+    
+    <path d="M4 22 L4 11 A 8 8 0 0 1 20 11 L 20 22"
+          fill="none" stroke="#E00B41" stroke-width="1.3"
+          stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M3 22 L21 22"
+          fill="none" stroke="#E00B41" stroke-width="1.0"
+          stroke-linecap="round" stroke-linejoin="round" opacity="0.85" />
+    <path d="M8.5 17 V9 L 15.5 17 V9"
+          fill="none" stroke="#E00B41" stroke-width="1.3"
+          stroke-linecap="round" stroke-linejoin="round" />
+  
+  </svg>
+  <text x="733.44" y="306"
+        font-family="Inter, -apple-system, system-ui, sans-serif"
+        font-size="53"
+        font-weight="600"
+        letter-spacing="11.66"
+        fill="#1A1A1A"
+        dominant-baseline="middle">
+    NEXTWIN <tspan fill="#E00B41">·</tspan> STAY
+  </text>
+  <text x="733.44" y="377"
+        font-family="Inter, -apple-system, system-ui, sans-serif"
+        font-size="25"
+        font-weight="600"
+        letter-spacing="12.5"
+        fill="#1A1A1A"
+        opacity="0.6"
+        dominant-baseline="hanging">
+    MARRAKECH
+  </text>
+</svg>

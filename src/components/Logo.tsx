@@ -33,6 +33,19 @@ export function Logo({ className, variant = "default" }: LogoProps) {
     <Link
       href="/"
       aria-label="NEXTWIN STAY · Marrakech"
+      // Force-scroll the document to the very top whenever the Logo is
+      // tapped. Next.js's App Router default IS to scroll on Link, but
+      // iOS Safari aggressively restores the previous scroll position
+      // for the same URL — so coming back to "/" from a property page
+      // can land the user mid-page instead of on the hero video. Firing
+      // the manual scroll in the onClick handler runs against the live
+      // document before the route swap commits, which sticks across the
+      // client-side transition.
+      onClick={() => {
+        if (typeof window !== "undefined") {
+          window.scrollTo({ top: 0, behavior: "instant" });
+        }
+      }}
       className={cn(
         "group inline-flex shrink-0 items-center gap-2 sm:gap-2.5",
         className,
