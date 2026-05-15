@@ -1,14 +1,14 @@
 import { ImageResponse } from "next/og";
 
-// Browser favicon — the same monogram as the Logo component: a
-// hairline ring with an editorial "N" inside, in the brand red.
-// Strokes are stepped up slightly vs. the in-app logo (which sits
-// at 36 px on a calm cream backdrop) because at 32 px on a tiny
-// browser tab, true hairlines disappear into sub-pixel aliasing.
+// Browser favicon — mirrors the new Logo monogram: a Moorish-arch
+// silhouette (the iconic Marrakech keyhole doorway) with the
+// editorial N inside, grounded by a stone-threshold base line.
+// At 32 px the strokes are pumped up vs. the in-app SVG so the
+// glyph survives sub-pixel rasterisation in the browser tab.
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
-// Required for `output: 'export'` — bake the icon into a real .png at
-// build time instead of generating it per-request.
+// Required for `output: 'export'` — bake into a real .png at build
+// time instead of generating per-request.
 export const dynamic = "force-static";
 
 export default function Icon() {
@@ -25,27 +25,24 @@ export default function Icon() {
           borderRadius: 7,
         }}
       >
-        <svg width="28" height="28" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-          {/* Hairline ring — 1.6px stroke reads as a thin line on
-              retina without vanishing at the 32 px favicon size. */}
-          <circle
-            cx="16"
-            cy="16"
-            r="13"
-            fill="none"
-            stroke="#E00B41"
+        <svg
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#E00B41"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          {/* Horseshoe arch — two columns + 270° arc on top. */}
+          <path
+            d="M4 22 L4 11 A 8 8 0 0 1 20 11 L 20 22"
             strokeWidth="1.6"
           />
-          {/* Editorial N — same path as the Logo SVG, scaled into the
-              circle with a touch of inset on every side. */}
-          <path
-            d="M11 23 V9 L21 23 V9"
-            fill="none"
-            stroke="#E00B41"
-            strokeWidth="1.8"
-            strokeLinecap="butt"
-            strokeLinejoin="miter"
-          />
+          {/* Stone-threshold base line. */}
+          <path d="M3 22 L21 22" strokeWidth="1.4" opacity="0.85" />
+          {/* The N — hairline verticals + a single diagonal. */}
+          <path d="M8.5 17 V9 L 15.5 17 V9" strokeWidth="1.6" />
         </svg>
       </div>
     ),
