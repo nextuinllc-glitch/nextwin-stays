@@ -10,17 +10,17 @@ import { PrismaClient } from "@prisma/client";
 // Slug → (€/night). Chosen to vary slightly between cards without
 // breaking the "all roughly €72-76" promise the owner asked for.
 const PRICE_BY_SLUG = {
-  "d32-style-urbain-chic": 72,
-  "appt-54-glamour-prestige": 74,
-  "appt-duplex-26-double-hauteur": 76,
-  "appart-36-standing-royal": 73,
-  "appart-39-luxe-authenticite": 72,
-  "appart-22-duplex-moderne": 75,
-  "appart-84-premium-terrasse-vue-ville": 74,
-  "appt-63-luxe-terrasse-piscine": 76,
-  "appt-57-moderne-complet": 73,
-  "appt-76-de-luxe": 75,
-  "appartement-gueliz-luxe-modernite": 76,
+  "d32-style-urbain-chic": 65,
+  "appt-54-glamour-prestige": 67,
+  "appt-duplex-26-double-hauteur": 69,
+  "appart-36-standing-royal": 66,
+  "appart-39-luxe-authenticite": 65,
+  "appart-22-duplex-moderne": 68,
+  "appart-84-premium-terrasse-vue-ville": 67,
+  "appt-63-luxe-terrasse-piscine": 69,
+  "appt-57-moderne-complet": 66,
+  "appt-76-de-luxe": 68,
+  "appartement-gueliz-luxe-modernite": 69,
 };
 
 async function main() {
