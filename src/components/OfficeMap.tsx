@@ -15,14 +15,25 @@ const OfficeMapInner = dynamic(() => import("@/components/OfficeMapInner"), {
   ),
 });
 
-// Coordinates for the NEXTWIN IMMOBILIER office — Route de Safi, Burj
-// Malak, Marrakech. Hard-coded for now; can be promoted to admin
-// Settings later if the office moves.
-const OFFICE_LAT = 31.6505;
-const OFFICE_LNG = -8.0023;
+// Coordinates for the NEXTWIN IMMOBILIER office — Burj Malak, Route de
+// Safi, Marrakech. Resolved from the Google Maps share link the user
+// provided (Knowledge Graph ID /g/11tbh86_dg, CID 0xdafed7d7d06ac6d).
+// Hard-coded for now; can be promoted to admin Settings if the office
+// moves.
+const OFFICE_LAT = 31.6643497;
+const OFFICE_LNG = -8.0327965;
 const OFFICE_ADDRESS = "Route de Safi, Burj Malak, Bureau A12, Marrakech 40000, Maroc";
 const OFFICE_PHONE = "+212 6 68 84 03 98";
 const OFFICE_EMAIL = "hello@nextwin.ma";
+
+// Google Maps universal-URL deep links. Both work in browsers and
+// hand off cleanly to the native iOS / Android Maps apps when those
+// are installed.
+//   - directions: opens "Itinéraire" from the user's location
+//   - place:      drops a pin on the office (used as the "Voir sur
+//                 Google Maps" secondary affordance)
+const MAPS_DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=${OFFICE_LAT},${OFFICE_LNG}`;
+const MAPS_PLACE_URL = `https://www.google.com/maps/search/?api=1&query=${OFFICE_LAT},${OFFICE_LNG}`;
 
 /**
  * Home-page office strip. Sits between the choose-your-lane portal
@@ -141,10 +152,45 @@ export function OfficeMap() {
             </Link>
           </div>
 
-          {/* Map */}
-          <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-card">
+          {/* Map - the whole tile is clickable and opens Google Maps
+              with driving directions to the office. We layer a
+              transparent <a> on top of the Leaflet container; the
+              anchor catches clicks even on the inactive (non-zoom)
+              parts of the map. A "Voir sur Google Maps" pill in the
+              corner makes the affordance discoverable on first sight. */}
+          <div className="relative overflow-hidden rounded-2xl border border-gray-100 shadow-card">
             <OfficeMapInner lat={OFFICE_LAT} lng={OFFICE_LNG} />
+            <a
+              href={MAPS_DIRECTIONS_URL}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label="Itinéraire vers notre bureau"
+              className="absolute inset-0 z-[500]"
+            />
+            <a
+              href={MAPS_DIRECTIONS_URL}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="group absolute bottom-3 right-3 z-[600] inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink shadow-md backdrop-blur transition hover:bg-brand-600 hover:text-white"
+            >
+              Itinéraire
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+            </a>
           </div>
+        </div>
+
+        {/* Secondary affordance under the map - "Open in Google Maps"
+            without driving directions, in case the visitor just wants
+            to scope the area without committing to a route. */}
+        <div className="mx-auto mt-6 text-center">
+          <a
+            href={MAPS_PLACE_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-muted underline-offset-4 transition hover:text-brand-700 hover:underline"
+          >
+            Voir sur Google Maps
+          </a>
         </div>
       </div>
     </section>

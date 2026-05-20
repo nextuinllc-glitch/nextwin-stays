@@ -28,25 +28,43 @@ type Lane = {
   accent: Accent;
 };
 
-// Per-accent classes. Tailwind needs the full class string in source so
-// JIT can detect them - we cannot template "bg-${accent}-700". Each entry
-// pairs:
-//  - bgFill:    the saturated column background colour (hover on desktop,
-//               scroll-into-view on mobile)
-//  - ctaText:   the CTA pill text colour when the column is filled (so it
-//               reads on the white pill that the CTA flips to)
-const ACCENT: Record<Accent, { bgFill: string; ctaText: string }> = {
-  sky: { bgFill: "bg-sky-700", ctaText: "text-sky-700" },
-  amber: { bgFill: "bg-amber-700", ctaText: "text-amber-700" },
-  emerald: { bgFill: "bg-emerald-800", ctaText: "text-emerald-800" },
-};
-
-// Tailwind needs every full class string present in source so the JIT
-// compiler keeps them. These are the resting CTA colours per accent.
-const CTA_REST: Record<Accent, string> = {
-  sky: "bg-sky-600",
-  amber: "bg-amber-600",
-  emerald: "bg-emerald-700",
+// Per-accent classes. Tailwind JIT only generates CSS for class names it
+// sees as literal strings in source - it cannot follow string
+// interpolation like `hover:${a.bgFill}` because that string is only
+// assembled at runtime. So every variant (filled / hover / group-hover)
+// is spelled out below as a literal, and the lookup just picks the
+// right column. Adding a new accent is one entry here.
+const ACCENT: Record<
+  Accent,
+  {
+    filledBg: string;       // applied when the column is "filled" (active/in-view)
+    hoverBg: string;        // applied as hover: on the Link itself
+    ctaFilledText: string;  // CTA text colour over the white pill in filled state
+    ctaHoverText: string;   // CTA text colour on group-hover over white pill
+    ctaRestBg: string;      // CTA fill colour at rest (kind-tinted pill on cream column)
+  }
+> = {
+  sky: {
+    filledBg: "bg-sky-700",
+    hoverBg: "hover:bg-sky-700",
+    ctaFilledText: "text-sky-700",
+    ctaHoverText: "group-hover:text-sky-700",
+    ctaRestBg: "bg-sky-600",
+  },
+  amber: {
+    filledBg: "bg-amber-700",
+    hoverBg: "hover:bg-amber-700",
+    ctaFilledText: "text-amber-700",
+    ctaHoverText: "group-hover:text-amber-700",
+    ctaRestBg: "bg-amber-600",
+  },
+  emerald: {
+    filledBg: "bg-emerald-800",
+    hoverBg: "hover:bg-emerald-800",
+    ctaFilledText: "text-emerald-800",
+    ctaHoverText: "group-hover:text-emerald-800",
+    ctaRestBg: "bg-emerald-700",
+  },
 };
 
 export function HomePortal() {
@@ -193,7 +211,7 @@ function LaneCard({
       data-lane-index={index}
       href={lane.href}
       className={`group relative flex flex-col items-center px-6 py-16 text-center transition-colors duration-500 ease-out sm:px-8 sm:py-20 lg:py-28 ${
-        filled ? `${a.bgFill} text-white` : `hover:text-white hover:${a.bgFill}`
+        filled ? `${a.filledBg} text-white` : `hover:text-white ${a.hoverBg}`
       }`}
     >
       {/* Icon - thin hairline circle. Becomes a translucent-on-fill
@@ -246,8 +264,8 @@ function LaneCard({
       <span
         className={`mt-10 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] shadow-sm transition ${
           filled
-            ? `bg-white ${a.ctaText}`
-            : `${CTA_REST[lane.accent]} text-white group-hover:bg-white group-hover:${a.ctaText}`
+            ? `bg-white ${a.ctaFilledText}`
+            : `${a.ctaRestBg} text-white group-hover:bg-white ${a.ctaHoverText}`
         }`}
       >
         {lane.cta}

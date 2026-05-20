@@ -35,17 +35,17 @@ export function HomeContent({ hero }: Props) {
           Anchor target for the hero's scroll-cue chevron. */}
       <HomePortal />
 
-      {/* Office map - editorial location strip with the agency address +
-          a Leaflet pin on Marrakech. Sits between the portal and the
-          owner pivot so a visitor can put a real place on the brand. */}
-      <OfficeMap />
-
       {/* Owner pivot - dark editorial band that targets a different
           audience (owners who want their property managed). Routes the
           interested ones to /gestion where the full pitch + lead form
-          lives, so the home page stays focused on the buyer/renter
-          journey. */}
+          lives. Placed before the office map so the rhythm is
+          dark → light, ending the page on the warm cream office strip. */}
       <OwnerCallout />
+
+      {/* Office map - editorial location strip with the agency address
+          + a Leaflet pin on Marrakech. Tapping the map opens Google
+          Maps with driving directions. Closing chapter of the page. */}
+      <OfficeMap />
     </>
   );
 }

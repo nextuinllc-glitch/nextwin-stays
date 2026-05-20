@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" aria-hidden="true">
+  <defs>
+    <!-- Soft brand-pink glow behind the composition lifts the centre
+         and gives the illustration weight against the ink background
+         of the OwnerCallout. -->
+    <radialGradient id="ownerGlow" cx="50%" cy="42%" r="58%">
+      <stop offset="0%"  stop-color="#E00B41" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="#E00B41" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Soft white wash inside the villa walls so the silhouette reads
+         as a depth layer, not flat strokes. -->
+    <linearGradient id="villaFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.01"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Brand glow -->
+  <circle cx="300" cy="252" r="240" fill="url(#ownerGlow)"/>
+
+  <!-- Double editorial frame - thin outer hairline + brand-pink inner.
+       Same language as the coming-soon placeholder so the whole brand
+       feels native to itself. -->
+  <rect x="48" y="48" width="504" height="504" fill="none"
+        stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="2"/>
+  <rect x="66" y="66" width="468" height="468" fill="none"
+        stroke="#E00B41" stroke-opacity="0.45" stroke-width="1"/>
+
+  <!-- Villa silhouette - centred, generous, single colour. Soft fill
+       so it reads as a layer rather than a heavy box; strokes provide
+       the linework definition. -->
+  <g class="owner-illo-villa" stroke="#FFFFFF" stroke-opacity="0.78"
+     stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+     fill="url(#villaFill)">
+    <!-- Ground line -->
+    <line x1="120" y1="430" x2="480" y2="430" stroke-opacity="0.45"/>
+    <!-- Main body -->
+    <path d="M 175 430 L 175 290 L 300 200 L 425 290 L 425 430 Z"/>
+    <!-- Roof rim (extends beyond body for an editorial overhang) -->
+    <path d="M 155 296 L 300 188 L 445 296" fill="none"/>
+    <!-- Front door -->
+    <rect x="275" y="350" width="50" height="80"/>
+    <line x1="300" y1="350" x2="300" y2="430" stroke-opacity="0.35"/>
+    <circle cx="313" cy="392" r="2.4" fill="#E00B41" stroke="none"/>
+    <!-- Windows - left + right -->
+    <rect x="206" y="320" width="48" height="40"/>
+    <line x1="230" y1="320" x2="230" y2="360" stroke-opacity="0.4"/>
+    <line x1="206" y1="340" x2="254" y2="340" stroke-opacity="0.4"/>
+    <rect x="346" y="320" width="48" height="40"/>
+    <line x1="370" y1="320" x2="370" y2="360" stroke-opacity="0.4"/>
+    <line x1="346" y1="340" x2="394" y2="340" stroke-opacity="0.4"/>
+    <!-- Upper-storey rooftop window -->
+    <rect x="280" y="252" width="40" height="32"/>
+    <line x1="300" y1="252" x2="300" y2="284" stroke-opacity="0.4"/>
+    <!-- Chimney -->
+    <path d="M 365 240 L 365 218 L 385 218 L 385 240" fill="none"/>
+  </g>
+
+  <!-- Key - the headline visual. Sits diagonally across the lower
+       left of the villa so it reads as "we hand you the keys to a
+       managed property". Brand pink stroke + filled bow. The whole
+       group has class="owner-illo-key" so CSS can rotate / lift it
+       when the parent OwnerCallout section is hovered. -->
+  <g class="owner-illo-key" transform="translate(0,0)"
+     stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"
+     stroke-linejoin="round" fill="none">
+    <g transform="rotate(-28, 250, 470)">
+      <!-- Key bow (head ring) - outer hairline + filled inner circle -->
+      <circle cx="170" cy="470" r="42" stroke="#E00B41" stroke-width="3.5" fill="rgba(224,11,65,0.12)"/>
+      <circle cx="170" cy="470" r="14" stroke="none" fill="#E00B41"/>
+      <!-- Key shaft -->
+      <line x1="212" y1="470" x2="396" y2="470" stroke="#FFFFFF"/>
+      <!-- Key teeth -->
+      <line x1="362" y1="470" x2="362" y2="494" stroke="#FFFFFF"/>
+      <line x1="380" y1="470" x2="380" y2="500" stroke="#FFFFFF"/>
+      <line x1="395" y1="470" x2="395" y2="488" stroke="#FFFFFF"/>
+    </g>
+  </g>
+
+  <!-- Editorial caption - small tracked wordmark anchoring the
+       composition. Kept very low contrast so it sits as a watermark,
+       not a label. -->
+  <text x="300" y="568" text-anchor="middle"
+        font-family="Inter, Helvetica, Arial, sans-serif"
+        font-size="13" font-weight="600"
+        letter-spacing="6"
+        fill="#FFFFFF" fill-opacity="0.45">
+    NEXTWIN · GESTION LOCATIVE
+  </text>
+</svg>
