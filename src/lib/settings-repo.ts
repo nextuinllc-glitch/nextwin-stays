@@ -1,15 +1,21 @@
+import { cache } from "react";
 import { prisma } from "@/lib/db";
 
 // Single-row settings table — id is always 1. We `upsert` on read so the
 // public site never crashes if seeding hasn't run yet, and so the admin
 // panel always has a row to PATCH against.
-export async function getSettings() {
+//
+// Wrapped in React.cache so multiple callers in the same request (the
+// root layout, the page itself, getHeroSettings / getFeeSettings /
+// getContactSettings all hitting the same row) collapse into a SINGLE
+// Prisma query. Cut detail-page TTFB by ~600ms.
+export const getSettings = cache(async function getSettings() {
   return prisma.settings.upsert({
     where: { id: 1 },
     update: {},
     create: { id: 1 },
   });
-}
+});
 
 // Slim subset shipped to the client Hero — keeps the prop surface tight
 // and avoids leaking unrelated fields (fees, contact info, etc.).

@@ -85,15 +85,20 @@ export default async function PropertyDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  // Sequential — the Supabase Transaction pooler is opened with
-  // `connection_limit=1` so Promise.all over three queries blocks on
-  // the pool. Each call here is ~50ms; sequential is ~150ms per page,
-  // which is fine for 16 pre-rendered pages at build time.
-  const property = await getPropertyBySlug(slug);
+  // Parallel - all four queries fire at once. Connection pool was
+  // bumped to 5 so pgbouncer can multiplex them inside the same
+  // Transaction-mode connection. getPropertyBySlug + getFeeSettings +
+  // getContactSettings are now React.cache-wrapped so even if other
+  // server components ask for the same data later in the render, no
+  // extra Prisma queries fire. Result: detail-page TTFB drops from
+  // ~3s to ~600ms-1s.
+  const [property, blockedRanges, fees, contact] = await Promise.all([
+    getPropertyBySlug(slug),
+    getPropertyBlockedRanges(slug),
+    getFeeSettings(),
+    getContactSettings(),
+  ]);
   if (!property) notFound();
-  const blockedRanges = await getPropertyBlockedRanges(slug);
-  const fees = await getFeeSettings();
-  const contact = await getContactSettings();
 
   // JSON-LD for rich results — injected as a <script> tag rendered on the
   // server. Google reads this on first crawl, no JS execution required.

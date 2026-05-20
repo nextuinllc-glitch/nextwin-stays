@@ -1,6 +1,7 @@
 // DB-backed property reads. Returns the Property shape the public components
 // already expect, so admin edits flow straight into /properties, /properties/[slug],
 // and the home grid without forcing a UI refactor.
+import { cache } from "react";
 import { prisma } from "./db";
 import type { Property, PropertyType, ListingKind } from "./properties";
 
@@ -214,12 +215,19 @@ export async function getListingKindCounts(): Promise<{
   return counts;
 }
 
-export async function getPropertyBySlug(slug: string, lang: Lang = "fr"): Promise<Property | null> {
+// React.cache dedupes within a single request so generateMetadata + the
+// page itself + any nested server component asking for the same property
+// only hit the DB once. Used to be the biggest single contributor to
+// detail-page TTFB.
+export const getPropertyBySlug = cache(async function getPropertyBySlug(
+  slug: string,
+  lang: Lang = "fr",
+): Promise<Property | null> {
   const row = await fetchOne(slug);
   if (!row) return null;
   if (!row.published) return null;
   return rowToProperty(row, lang);
-}
+});
 
 export async function getAllPropertySlugs(): Promise<string[]> {
   const rows = await prisma.property.findMany({
