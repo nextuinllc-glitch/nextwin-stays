@@ -126,12 +126,18 @@ export function Hero({
                 src={videoPosterMobile}
                 alt=""
                 aria-hidden
+                fetchPriority="high"
+                decoding="async"
                 className={cn(
                   // z-0 keeps the poster image strictly below the
                   // video layer. Without this it'd render on top
                   // (positioned elements paint above unpositioned
                   // siblings in the same stacking context) and hide
                   // the video entirely.
+                  // `fetchPriority="high"` tells the browser this is
+                  // the LCP candidate so it downloads ahead of the
+                  // video bytes — keeps LCP locked on the poster
+                  // (~1.5s) instead of the video first frame (~2.5s).
                   "absolute inset-0 z-0 h-full w-full object-cover",
                   bothPresent && "md:hidden",
                 )}
@@ -143,6 +149,8 @@ export function Hero({
                 src={videoPosterDesktop}
                 alt=""
                 aria-hidden
+                fetchPriority="high"
+                decoding="async"
                 className={cn(
                   "absolute inset-0 z-0 h-full w-full object-cover",
                   bothPresent && "hidden md:block",
@@ -156,7 +164,7 @@ export function Hero({
                 muted
                 loop
                 playsInline
-                preload="auto"
+                preload="metadata"
                 poster={videoPosterMobile ?? undefined}
                 disablePictureInPicture
                 disableRemotePlayback
@@ -182,7 +190,7 @@ export function Hero({
                 muted
                 loop
                 playsInline
-                preload="auto"
+                preload="metadata"
                 poster={videoPosterDesktop ?? undefined}
                 disablePictureInPicture
                 disableRemotePlayback
