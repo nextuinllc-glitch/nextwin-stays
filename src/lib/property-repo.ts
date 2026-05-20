@@ -2,7 +2,19 @@
 // already expect, so admin edits flow straight into /properties, /properties/[slug],
 // and the home grid without forcing a UI refactor.
 import { prisma } from "./db";
-import type { Property, PropertyType } from "./properties";
+import type { Property, PropertyType, ListingKind } from "./properties";
+
+// PRE-LAUNCH: the SHORT_STAY catalogue ships with real bookable listings.
+// SALE + RENT_LONG aren't ready yet, so for now every public read of those
+// kinds gets a single placeholder image at /coming-soon.svg. Admin reads
+// (raw prisma) are untouched - editors still see and manage the real images
+// in /admin/acheter and /admin/louer. Flip COMING_SOON_NON_STAY to false
+// once the buy/long-term inventory is photographed and ready.
+const COMING_SOON_NON_STAY = true;
+const COMING_SOON_PLACEHOLDER = {
+  src: "/coming-soon.svg",
+  alt: "Bientôt disponible",
+};
 
 type Lang = "fr" | "en" | "ar";
 
@@ -36,6 +48,15 @@ function rowToProperty(row: PropertyRow, lang: Lang = "fr"): Property {
     row.latitude != null && row.longitude != null
       ? { lat: row.latitude, lng: row.longitude, radius: row.locationRadius ?? 200 }
       : null;
+  const listingKind = ((row as unknown as { listingKind?: string | null }).listingKind ?? "SHORT_STAY") as ListingKind;
+  // Per the pre-launch flag, SALE and RENT_LONG listings ship with a
+  // single placeholder image instead of the real photos. SHORT_STAY
+  // keeps the real carousel because those listings are bookable today.
+  const useComingSoonImage =
+    COMING_SOON_NON_STAY && (listingKind === "SALE" || listingKind === "RENT_LONG");
+  const publicImages = useComingSoonImage
+    ? [COMING_SOON_PLACEHOLDER]
+    : row.images.map((i) => ({ src: i.src, alt: i.alt }));
   return {
     slug: row.slug,
     type: row.type as PropertyType,
@@ -46,8 +67,32 @@ function rowToProperty(row: PropertyRow, lang: Lang = "fr"): Property {
     guests: row.guests,
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
+    listingKind,
     pricePerNight: row.pricePerNight,
-    currency: row.currency as "EUR",
+    monthlyRent: (row as unknown as { monthlyRent?: number | null }).monthlyRent ?? null,
+    salePrice: (row as unknown as { salePrice?: number | null }).salePrice ?? null,
+    surfaceM2: (row as unknown as { surfaceM2?: number | null }).surfaceM2 ?? null,
+    currency: row.currency as "EUR" | "MAD",
+    // Real-estate structured fields - all optional, all nullable.
+    // Cast around the Prisma client in case it hasn't regenerated yet.
+    landSurfaceM2:   (row as unknown as { landSurfaceM2?:   number | null }).landSurfaceM2   ?? null,
+    floor:           (row as unknown as { floor?:           number | null }).floor           ?? null,
+    totalFloors:     (row as unknown as { totalFloors?:     number | null }).totalFloors     ?? null,
+    yearBuilt:       (row as unknown as { yearBuilt?:       number | null }).yearBuilt       ?? null,
+    condition:       (row as unknown as { condition?:       string | null }).condition       ?? null,
+    standing:        (row as unknown as { standing?:        string | null }).standing        ?? null,
+    orientation:     (row as unknown as { orientation?:     string | null }).orientation     ?? null,
+    furnished:       (row as unknown as { furnished?:       boolean | null }).furnished      ?? null,
+    parkingSpaces:   (row as unknown as { parkingSpaces?:   number | null }).parkingSpaces   ?? null,
+    landStatus:      (row as unknown as { landStatus?:      string | null }).landStatus      ?? null,
+    landZoning:      (row as unknown as { landZoning?:      string | null }).landZoning      ?? null,
+    securityDeposit: (row as unknown as { securityDeposit?: number | null }).securityDeposit ?? null,
+    monthlyCharges:  (row as unknown as { monthlyCharges?:  number | null }).monthlyCharges  ?? null,
+    agencyFeeMonths: (row as unknown as { agencyFeeMonths?: number | null }).agencyFeeMonths ?? null,
+    ceilingHeight:   (row as unknown as { ceilingHeight?:   number | null }).ceilingHeight   ?? null,
+    salons:           (row as unknown as { salons?:           number | null }).salons           ?? null,
+    apartmentSubtype: (row as unknown as { apartmentSubtype?: string | null }).apartmentSubtype ?? null,
+    availability:     (row as unknown as { availability?:     string | null }).availability     ?? null,
     title: pickTitle(row, lang),
     shortDescription: pickShort(row, lang),
     description: pickDescription(row, lang),
@@ -74,7 +119,7 @@ function rowToProperty(row: PropertyRow, lang: Lang = "fr"): Property {
     },
     amenities: safeJsonArray(row.amenitiesJson),
     highlights: safeJsonArray(row.highlightsJson),
-    images: row.images.map((i) => ({ src: i.src, alt: i.alt })),
+    images: publicImages,
     host: { name: row.hostName, yearsHosting: row.hostYears },
     location,
     rules: {
@@ -127,11 +172,13 @@ function safeJsonArray(s: string | null | undefined): string[] {
 export async function getPublishedProperties(opts?: {
   type?: PropertyType;
   guests?: number;
+  listingKind?: ListingKind;
   lang?: Lang;
 }): Promise<Property[]> {
   const where: Record<string, unknown> = { published: true };
   if (opts?.type) where.type = opts.type;
   if (opts?.guests) where.guests = { gte: opts.guests };
+  if (opts?.listingKind) where.listingKind = opts.listingKind;
 
   const rows = await prisma.property.findMany({
     where,
@@ -140,6 +187,31 @@ export async function getPublishedProperties(opts?: {
   });
 
   return rows.map((row) => rowToProperty(row, opts?.lang ?? "fr"));
+}
+
+/**
+ * Count published properties grouped by listing kind. Used to render the
+ * "Acheter (12) / Louer (8) / Court-séjour (10)" tab badges on the top-level
+ * navigation pills.
+ */
+export async function getListingKindCounts(): Promise<{
+  all: number;
+  SHORT_STAY: number;
+  RENT_LONG: number;
+  SALE: number;
+}> {
+  const groups = await prisma.property.groupBy({
+    by: ["listingKind"],
+    where: { published: true },
+    _count: { _all: true },
+  });
+  const counts = { all: 0, SHORT_STAY: 0, RENT_LONG: 0, SALE: 0 };
+  for (const g of groups) {
+    counts.all += g._count._all;
+    const k = g.listingKind as keyof typeof counts;
+    if (k in counts) counts[k] = g._count._all;
+  }
+  return counts;
 }
 
 export async function getPropertyBySlug(slug: string, lang: Lang = "fr"): Promise<Property | null> {
@@ -157,17 +229,29 @@ export async function getAllPropertySlugs(): Promise<string[]> {
   return rows.map((r) => r.slug);
 }
 
-export async function getPropertyTypeCounts() {
+export async function getPropertyTypeCounts(opts?: { listingKind?: ListingKind }) {
+  const where: Record<string, unknown> = { published: true };
+  if (opts?.listingKind) where.listingKind = opts.listingKind;
+
   const groups = await prisma.property.groupBy({
     by: ["type"],
-    where: { published: true },
+    where,
     _count: { _all: true },
   });
-  const counts = { all: 0, villa: 0, riad: 0, apartment: 0 };
+  const counts = {
+    all: 0,
+    villa: 0,
+    riad: 0,
+    apartment: 0,
+    terrain: 0,
+    bureau: 0,
+    magasin: 0,
+    commercial: 0,
+  };
   for (const g of groups) {
     counts.all += g._count._all;
-    if (g.type === "villa" || g.type === "riad" || g.type === "apartment") {
-      counts[g.type] = g._count._all;
+    if (g.type in counts) {
+      counts[g.type as keyof typeof counts] = g._count._all;
     }
   }
   return counts;

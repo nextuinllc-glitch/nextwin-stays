@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 
 type ImageRow = { id?: string; src: string; alt: string; position: number };
 
+export type ListingKind = "SHORT_STAY" | "RENT_LONG" | "SALE";
+
 export type PropertyEditorInitial = {
   id?: string;
   slug: string;
@@ -20,8 +22,14 @@ export type PropertyEditorInitial = {
   guests: number;
   bedrooms: number;
   bathrooms: number;
-  pricePerNight: number;
-  currency: string;
+  // Listing kind drives which price field is canonical + which public flow
+  // (booking vs. inquiry) is shown.
+  listingKind: ListingKind;
+  pricePerNight: number;     // SHORT_STAY canonical price (minor units)
+  monthlyRent: number | null;  // RENT_LONG canonical price
+  salePrice: number | null;   // SALE canonical price
+  surfaceM2: number | null;   // floor area in m² (real estate)
+  currency: string;          // "EUR" | "MAD"
   titleFr: string;
   titleEn: string;
   titleAr: string;
@@ -48,6 +56,29 @@ export type PropertyEditorInitial = {
   rulePets: string;
   ruleSmoking: string;
   ruleAdditional: string;
+  // -------- Real-estate structured fields (SALE / RENT_LONG) ---------
+  landSurfaceM2: number | null;
+  floor: number | null;
+  totalFloors: number | null;
+  yearBuilt: number | null;
+  condition: string | null;       // Neuf / Bon état / À rénover / Jamais habité
+  standing: string | null;        // Haut standing / Standing moyen / Économique
+  orientation: string | null;     // Sud / Sud-Est / Nord / ...
+  furnished: boolean | null;
+  parkingSpaces: number | null;
+  // Terrain
+  landStatus: string | null;
+  landZoning: string | null;
+  // Rental
+  securityDeposit: number | null; // months
+  monthlyCharges: number | null;  // minor units
+  agencyFeeMonths: number | null; // months
+  // Commercial
+  ceilingHeight: number | null;   // metres
+  // Universal extras (Avito-style)
+  salons: number | null;
+  apartmentSubtype: string | null;
+  availability: string | null;
 };
 
 const EMPTY: PropertyEditorInitial = {
@@ -60,7 +91,11 @@ const EMPTY: PropertyEditorInitial = {
   guests: 2,
   bedrooms: 1,
   bathrooms: 1,
+  listingKind: "SHORT_STAY",
   pricePerNight: 150,
+  monthlyRent: null,
+  salePrice: null,
+  surfaceM2: null,
   currency: "EUR",
   titleFr: "",
   titleEn: "",
@@ -85,12 +120,41 @@ const EMPTY: PropertyEditorInitial = {
   rulePets: "Sur demande",
   ruleSmoking: "Interdit à l'intérieur",
   ruleAdditional: "",
+  // Real-estate fields default to null - admin fills them when relevant.
+  landSurfaceM2: null,
+  floor: null,
+  totalFloors: null,
+  yearBuilt: null,
+  condition: null,
+  standing: null,
+  orientation: null,
+  furnished: null,
+  parkingSpaces: null,
+  landStatus: null,
+  landZoning: null,
+  securityDeposit: null,
+  monthlyCharges: null,
+  agencyFeeMonths: null,
+  ceilingHeight: null,
+  salons: null,
+  apartmentSubtype: null,
+  availability: null,
 };
 
 const TYPES = [
-  { value: "riad", label: "Riad" },
-  { value: "villa", label: "Villa" },
-  { value: "apartment", label: "Appartement" },
+  { value: "riad",       label: "Riad" },
+  { value: "villa",      label: "Villa" },
+  { value: "apartment",  label: "Appartement" },
+  { value: "terrain",    label: "Terrain" },
+  { value: "bureau",     label: "Bureau" },
+  { value: "magasin",    label: "Magasin" },
+  { value: "commercial", label: "Commercial" },
+];
+
+const LISTING_KINDS: { value: ListingKind; label: string; tagline: string }[] = [
+  { value: "SHORT_STAY", label: "Court séjour", tagline: "Location à la nuit, calendrier de réservations." },
+  { value: "RENT_LONG",  label: "Longue durée", tagline: "Bail mensuel, formulaire de demande." },
+  { value: "SALE",       label: "À la vente",   tagline: "Prix de vente unique, formulaire de demande." },
 ];
 
 const COMMON_AMENITIES = [
@@ -121,11 +185,27 @@ const COMMON_AMENITIES = [
 type Props = {
   mode: "create" | "edit";
   initial?: PropertyEditorInitial;
+  // When `mode === "create"` and the route was hit with `?kind=SALE` etc.,
+  // the editor opens pre-set to that kind so admins coming from
+  // /admin/acheter or /admin/louer don't have to switch it manually.
+  presetKind?: ListingKind;
 };
 
-export function PropertyEditor({ mode, initial }: Props) {
+export function PropertyEditor({ mode, initial, presetKind }: Props) {
   const router = useRouter();
-  const [data, setData] = useState<PropertyEditorInitial>(initial ?? EMPTY);
+  const [data, setData] = useState<PropertyEditorInitial>(() => {
+    if (initial) return initial;
+    // Start from EMPTY but apply kind-specific defaults so new sale/rent
+    // listings get MAD as the default currency and don't carry over the
+    // SHORT_STAY pricePerNight default of €150.
+    if (presetKind === "SALE") {
+      return { ...EMPTY, listingKind: "SALE", pricePerNight: 0, currency: "MAD", guests: 0 };
+    }
+    if (presetKind === "RENT_LONG") {
+      return { ...EMPTY, listingKind: "RENT_LONG", pricePerNight: 0, currency: "MAD" };
+    }
+    return EMPTY;
+  });
   const [tab, setTab] = useState<"fr" | "en" | "ar">("fr");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -165,7 +245,15 @@ export function PropertyEditor({ mode, initial }: Props) {
         setError(json?.error ?? "Sauvegarde impossible");
         return;
       }
-      router.push("/admin/properties");
+      // Redirect back to the kind-scoped admin list so the editor flow
+      // stays self-contained per section.
+      const target =
+        data.listingKind === "SALE"
+          ? "/admin/acheter"
+          : data.listingKind === "RENT_LONG"
+            ? "/admin/louer"
+            : "/admin/court-sejour";
+      router.push(target);
       router.refresh();
     } catch (e) {
       setError("Erreur réseau, réessayez.");
@@ -180,7 +268,13 @@ export function PropertyEditor({ mode, initial }: Props) {
     setSaving(true);
     try {
       await fetch(`/api/admin/properties/${data.id}`, { method: "DELETE" });
-      router.push("/admin/properties");
+      const target =
+        data.listingKind === "SALE"
+          ? "/admin/acheter"
+          : data.listingKind === "RENT_LONG"
+            ? "/admin/louer"
+            : "/admin/court-sejour";
+      router.push(target);
       router.refresh();
     } finally {
       setSaving(false);
@@ -567,6 +661,46 @@ export function PropertyEditor({ mode, initial }: Props) {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          <Card title="Type d'annonce">
+            <p className="-mt-2 mb-3 text-[11px] text-ink-soft">
+              Détermine le formulaire public (réservation ou demande) et le
+              champ de prix utilisé.
+            </p>
+            <div className="grid gap-2">
+              {LISTING_KINDS.map((k) => {
+                const active = data.listingKind === k.value;
+                return (
+                  <button
+                    key={k.value}
+                    type="button"
+                    onClick={() => {
+                      // Reset price defaults when switching kind so stale
+                      // values don't bleed across modes.
+                      const next: Partial<PropertyEditorInitial> = { listingKind: k.value };
+                      if (k.value === "SALE") {
+                        next.currency = data.currency === "EUR" ? "MAD" : data.currency;
+                        next.pricePerNight = 0;
+                      } else if (k.value === "RENT_LONG") {
+                        next.currency = data.currency === "EUR" ? "MAD" : data.currency;
+                        next.pricePerNight = 0;
+                      }
+                      setData((d) => ({ ...d, ...next }));
+                    }}
+                    className={cn(
+                      "rounded-xl border p-3 text-left text-sm transition",
+                      active
+                        ? "border-brand-500 bg-brand-50 ring-2 ring-brand-200"
+                        : "border-gray-200 bg-white hover:border-brand-300",
+                    )}
+                  >
+                    <div className="font-semibold text-ink">{k.label}</div>
+                    <div className="text-[11px] text-ink-soft">{k.tagline}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+
           <Card title="Publication">
             <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-white p-3">
               <input
@@ -610,7 +744,10 @@ export function PropertyEditor({ mode, initial }: Props) {
               </Field>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              <Field label="Invités">
+              {/* "Invités" only really applies to SHORT_STAY (max occupancy
+                  for a booking). Keep it visible for all kinds so existing
+                  data isn't lost, but skip it for terrain. */}
+              <Field label={data.listingKind === "SHORT_STAY" ? "Invités" : "Capacité"}>
                 <input
                   type="number"
                   className="form-input"
@@ -635,26 +772,357 @@ export function PropertyEditor({ mode, initial }: Props) {
                 />
               </Field>
             </div>
+
+            <Field label="Surface (m²)">
+              <input
+                type="number"
+                className="form-input"
+                placeholder="ex. 220"
+                value={data.surfaceM2 ?? ""}
+                onChange={(e) =>
+                  update("surfaceM2", e.target.value === "" ? null : Number(e.target.value))
+                }
+              />
+            </Field>
+            {/* Price field swaps to match the listing kind. The currency is
+                a separate selector so EUR vs MAD is explicit. */}
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Prix / nuit (€)">
-                <input
-                  type="number"
+              {data.listingKind === "SHORT_STAY" && (
+                <Field label={`Prix / nuit (${data.currency})`}>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={data.pricePerNight}
+                    onChange={(e) => update("pricePerNight", Number(e.target.value) || 0)}
+                  />
+                </Field>
+              )}
+              {data.listingKind === "RENT_LONG" && (
+                <Field label={`Loyer mensuel (${data.currency})`}>
+                  <input
+                    type="number"
+                    className="form-input"
+                    placeholder="ex. 22 000"
+                    value={data.monthlyRent ?? ""}
+                    onChange={(e) =>
+                      update("monthlyRent", e.target.value === "" ? null : Number(e.target.value))
+                    }
+                  />
+                </Field>
+              )}
+              {data.listingKind === "SALE" && (
+                <Field label={`Prix de vente (${data.currency})`}>
+                  <input
+                    type="number"
+                    className="form-input"
+                    placeholder="ex. 12 500 000"
+                    value={data.salePrice ?? ""}
+                    onChange={(e) =>
+                      update("salePrice", e.target.value === "" ? null : Number(e.target.value))
+                    }
+                  />
+                </Field>
+              )}
+              <Field label="Devise">
+                <select
                   className="form-input"
-                  value={data.pricePerNight}
-                  onChange={(e) => update("pricePerNight", Number(e.target.value) || 0)}
-                />
-              </Field>
-              <Field label="Note">
-                <input
-                  type="number"
-                  step="0.01"
-                  className="form-input"
-                  value={data.rating}
-                  onChange={(e) => update("rating", Number(e.target.value) || 0)}
-                />
+                  value={data.currency}
+                  onChange={(e) => update("currency", e.target.value)}
+                >
+                  <option value="EUR">EUR (€)</option>
+                  <option value="MAD">MAD (DH)</option>
+                </select>
               </Field>
             </div>
+            <Field label="Note">
+              <input
+                type="number"
+                step="0.01"
+                className="form-input"
+                value={data.rating}
+                onChange={(e) => update("rating", Number(e.target.value) || 0)}
+              />
+            </Field>
           </Card>
+
+          {/* Caractéristiques - structured real-estate fields modelled
+              after Avito.ma + Mubawab.ma. The visible field set adapts to
+              property.type so admins only see what's relevant (e.g. terrain
+              shows titre foncier + zonage, apartments show étage, bureaux
+              show ceiling height). All fields are optional. */}
+          {data.listingKind !== "SHORT_STAY" && (
+            <Card title="Caractéristiques">
+              <p className="-mt-2 mb-3 text-[11px] text-ink-soft">
+                Les champs montrés ici s&apos;adaptent au type de bien sélectionné
+                ci-dessus. Remplissez ce qui s&apos;applique.
+              </p>
+
+              {/* Surfaces - habitable for everyone; terrain for villas + terrains */}
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Surface habitable (m²)">
+                  <input
+                    type="number"
+                    className="form-input"
+                    placeholder="ex. 220"
+                    value={data.surfaceM2 ?? ""}
+                    onChange={(e) => update("surfaceM2", e.target.value === "" ? null : Number(e.target.value))}
+                  />
+                </Field>
+                {(data.type === "villa" || data.type === "terrain" || data.type === "riad") && (
+                  <Field label="Surface terrain (m²)">
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="ex. 1200"
+                      value={data.landSurfaceM2 ?? ""}
+                      onChange={(e) => update("landSurfaceM2", e.target.value === "" ? null : Number(e.target.value))}
+                    />
+                  </Field>
+                )}
+              </div>
+
+              {/* Étage row - apartments, bureaux, magasins */}
+              {(data.type === "apartment" || data.type === "bureau" || data.type === "magasin") && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Étage">
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="0 = RdC"
+                      value={data.floor ?? ""}
+                      onChange={(e) => update("floor", e.target.value === "" ? null : Number(e.target.value))}
+                    />
+                  </Field>
+                  {data.type === "apartment" && (
+                    <Field label="Étages totaux">
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="ex. 6"
+                        value={data.totalFloors ?? ""}
+                        onChange={(e) => update("totalFloors", e.target.value === "" ? null : Number(e.target.value))}
+                      />
+                    </Field>
+                  )}
+                </div>
+              )}
+
+              {/* Salons + Apartment subtype - residential only */}
+              {(data.type === "villa" || data.type === "riad" || data.type === "apartment") && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Salons">
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="ex. 2"
+                      value={data.salons ?? ""}
+                      onChange={(e) => update("salons", e.target.value === "" ? null : Number(e.target.value))}
+                    />
+                  </Field>
+                  {data.type === "apartment" && (
+                    <Field label="Sous-type">
+                      <select
+                        className="form-input"
+                        value={data.apartmentSubtype ?? ""}
+                        onChange={(e) => update("apartmentSubtype", e.target.value || null)}
+                      >
+                        <option value="">Standard</option>
+                        <option value="Studio">Studio</option>
+                        <option value="Duplex">Duplex</option>
+                        <option value="Triplex">Triplex</option>
+                        <option value="Loft">Loft</option>
+                      </select>
+                    </Field>
+                  )}
+                </div>
+              )}
+
+              {/* État + Standing + Année - all real-estate */}
+              {data.type !== "terrain" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="État">
+                    <select
+                      className="form-input"
+                      value={data.condition ?? ""}
+                      onChange={(e) => update("condition", e.target.value || null)}
+                    >
+                      <option value="">Non précisé</option>
+                      <option value="Neuf">Neuf</option>
+                      <option value="Jamais habité">Jamais habité</option>
+                      <option value="Bon état">Bon état</option>
+                      <option value="À rénover">À rénover</option>
+                    </select>
+                  </Field>
+                  <Field label="Standing">
+                    <select
+                      className="form-input"
+                      value={data.standing ?? ""}
+                      onChange={(e) => update("standing", e.target.value || null)}
+                    >
+                      <option value="">Non précisé</option>
+                      <option value="Haut standing">Haut standing</option>
+                      <option value="Standing moyen">Standing moyen</option>
+                      <option value="Économique">Économique</option>
+                    </select>
+                  </Field>
+                </div>
+              )}
+              {data.type !== "terrain" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Année de construction">
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="ex. 2018"
+                      value={data.yearBuilt ?? ""}
+                      onChange={(e) => update("yearBuilt", e.target.value === "" ? null : Number(e.target.value))}
+                    />
+                  </Field>
+                  <Field label="Orientation">
+                    <select
+                      className="form-input"
+                      value={data.orientation ?? ""}
+                      onChange={(e) => update("orientation", e.target.value || null)}
+                    >
+                      <option value="">Non précisé</option>
+                      <option value="Nord">Nord</option>
+                      <option value="Sud">Sud</option>
+                      <option value="Est">Est</option>
+                      <option value="Ouest">Ouest</option>
+                      <option value="Nord-Est">Nord-Est</option>
+                      <option value="Nord-Ouest">Nord-Ouest</option>
+                      <option value="Sud-Est">Sud-Est</option>
+                      <option value="Sud-Ouest">Sud-Ouest</option>
+                    </select>
+                  </Field>
+                </div>
+              )}
+
+              {/* Parking + meublé - residential + commercial */}
+              {data.type !== "terrain" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Places de parking">
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="ex. 2"
+                      value={data.parkingSpaces ?? ""}
+                      onChange={(e) => update("parkingSpaces", e.target.value === "" ? null : Number(e.target.value))}
+                    />
+                  </Field>
+                  <Field label="Meublé">
+                    <select
+                      className="form-input"
+                      value={data.furnished == null ? "" : data.furnished ? "yes" : "no"}
+                      onChange={(e) =>
+                        update("furnished", e.target.value === "" ? null : e.target.value === "yes")
+                      }
+                    >
+                      <option value="">Non précisé</option>
+                      <option value="yes">Oui</option>
+                      <option value="no">Non</option>
+                    </select>
+                  </Field>
+                </div>
+              )}
+
+              {/* Terrain-specific */}
+              {data.type === "terrain" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Titre foncier">
+                    <select
+                      className="form-input"
+                      value={data.landStatus ?? ""}
+                      onChange={(e) => update("landStatus", e.target.value || null)}
+                    >
+                      <option value="">Non précisé</option>
+                      <option value="Titré">Titré</option>
+                      <option value="En cours de titrement">En cours de titrement</option>
+                      <option value="Réquisition">Réquisition</option>
+                      <option value="Non titré">Non titré</option>
+                    </select>
+                  </Field>
+                  <Field label="Zonage">
+                    <select
+                      className="form-input"
+                      value={data.landZoning ?? ""}
+                      onChange={(e) => update("landZoning", e.target.value || null)}
+                    >
+                      <option value="">Non précisé</option>
+                      <option value="Lot de villa">Lot de villa</option>
+                      <option value="Immeuble">Immeuble</option>
+                      <option value="Constructible R+1">Constructible R+1</option>
+                      <option value="Constructible R+2">Constructible R+2</option>
+                      <option value="Agricole">Agricole</option>
+                      <option value="Industriel">Industriel</option>
+                      <option value="Commercial">Commercial</option>
+                      <option value="Touristique">Touristique</option>
+                    </select>
+                  </Field>
+                </div>
+              )}
+
+              {/* Bureau / magasin specific */}
+              {(data.type === "bureau" || data.type === "magasin") && (
+                <Field label="Hauteur sous plafond (m)">
+                  <input
+                    type="number"
+                    step="0.1"
+                    className="form-input"
+                    placeholder="ex. 3.2"
+                    value={data.ceilingHeight ?? ""}
+                    onChange={(e) => update("ceilingHeight", e.target.value === "" ? null : Number(e.target.value))}
+                  />
+                </Field>
+              )}
+
+              {/* Long-term rental specifics */}
+              {data.listingKind === "RENT_LONG" && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Caution (mois)">
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="ex. 2"
+                        value={data.securityDeposit ?? ""}
+                        onChange={(e) => update("securityDeposit", e.target.value === "" ? null : Number(e.target.value))}
+                      />
+                    </Field>
+                    <Field label="Frais d'agence (mois)">
+                      <input
+                        type="number"
+                        step="0.5"
+                        className="form-input"
+                        placeholder="ex. 1"
+                        value={data.agencyFeeMonths ?? ""}
+                        onChange={(e) => update("agencyFeeMonths", e.target.value === "" ? null : Number(e.target.value))}
+                      />
+                    </Field>
+                  </div>
+                  <Field label={`Charges mensuelles (${data.currency})`}>
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="ex. 500"
+                      value={data.monthlyCharges ?? ""}
+                      onChange={(e) => update("monthlyCharges", e.target.value === "" ? null : Number(e.target.value))}
+                    />
+                  </Field>
+                </>
+              )}
+
+              {/* Disponibilité - always shown */}
+              <Field label="Disponibilité">
+                <input
+                  className="form-input"
+                  placeholder="Immédiate, sept. 2026, etc."
+                  value={data.availability ?? ""}
+                  onChange={(e) => update("availability", e.target.value || null)}
+                />
+              </Field>
+            </Card>
+          )}
 
           <Card title="Hôte">
             <Field label="Prénom de l'hôte">

@@ -48,16 +48,24 @@ export async function PATCH(req: Request) {
     "footerBlurbAr",
     "cleaningFee",
     "serviceFeeRate",
+    "homeFeaturedShortStaySlug",
+    "homeFeaturedRentLongSlug",
+    "homeFeaturedSaleSlug",
   ] as const;
 
   // Nullable fields — admin may explicitly clear by sending null or "" so
   // the hero falls back to the static image. Poster fields are paired
   // with their video — clearing a video also clears its poster.
+  // Home-featured slugs are nullable too: empty means "fall back to the
+  // automatic first-match pick".
   const nullable = new Set<string>([
     "heroVideoDesktop",
     "heroVideoMobile",
     "heroPosterDesktop",
     "heroPosterMobile",
+    "homeFeaturedShortStaySlug",
+    "homeFeaturedRentLongSlug",
+    "homeFeaturedSaleSlug",
   ]);
 
   const data: Record<string, string | number | null> = {};

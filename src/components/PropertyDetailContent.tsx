@@ -8,6 +8,8 @@ import { useSearchParams } from "next/navigation";
 import { Gallery } from "@/components/Gallery";
 import { Amenities } from "@/components/Amenities";
 import { BookingWidget } from "@/components/BookingWidget";
+import { PropertyInquiryForm } from "@/components/PropertyInquiryForm";
+import { PropertySpecs } from "@/components/PropertySpecs";
 import { Reviews } from "@/components/Reviews";
 import { getReviewCount, getAverageRating } from "@/lib/reviews-data";
 import { getAreaCopy, formatLocationLine } from "@/data/area-descriptions";
@@ -147,9 +149,16 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
 
       {/* Photos first — large hero gallery sits directly under the back
           link, like Airbnb / Welbnb. Title block follows below so the
-          eye lands on the property's image before reading details. */}
+          eye lands on the property's image before reading details.
+          For SALE + RENT_LONG listings the images are swapped to the
+          cream placeholder in the public repo; the `comingSoon` prop
+          tells the gallery to layer the locale-aware "Bientôt
+          disponible" overlay on top. */}
       <div className="mt-4">
-        <Gallery images={property.images} />
+        <Gallery
+          images={property.images}
+          comingSoon={(property.listingKind ?? "SHORT_STAY") !== "SHORT_STAY"}
+        />
       </div>
 
       {/* Title block — name + meta + rating. Type pill above the title
@@ -166,33 +175,54 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
         <h1 className="font-display text-[22px] font-bold leading-tight tracking-tight text-ink sm:text-[26px] lg:text-[28px]">
           {title}
         </h1>
+        {/* Meta row under the title. Guests is a SHORT_STAY-only metric
+            (max occupancy for a booking); for SALE / RENT_LONG we surface
+            surface habitable instead, plus bedrooms/baths only when the
+            type has them (terrain has neither). */}
         <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-ink-muted">
           <span>{PROPERTY_TYPE_LABEL[property.type]}</span>
-          <span>·</span>
-          <span>
-            {property.guests} {t.card.guests}
-          </span>
-          <span>·</span>
-          <span>
-            {property.bedrooms} {t.card.bedrooms}
-          </span>
-          <span>·</span>
-          <span>
-            {property.bathrooms} {t.card.bathrooms}
-          </span>
+          {(() => {
+            const isStay = (property.listingKind ?? "SHORT_STAY") === "SHORT_STAY";
+            const isTerrain = property.type === "terrain";
+            const isCommercial = property.type === "bureau" || property.type === "magasin";
+            const items: React.ReactNode[] = [];
+
+            if (!isStay && property.surfaceM2) {
+              items.push(<span key="surface">{property.surfaceM2} m²</span>);
+            } else if (!isStay && isTerrain && property.landSurfaceM2) {
+              items.push(<span key="land">{property.landSurfaceM2.toLocaleString("fr-FR")} m²</span>);
+            }
+            if (isStay) {
+              items.push(
+                <span key="guests">{property.guests} {t.card.guests}</span>,
+              );
+            }
+            if (!isTerrain && !isCommercial && property.bedrooms > 0) {
+              items.push(<span key="bd">{property.bedrooms} {t.card.bedrooms}</span>);
+            }
+            if (!isTerrain && property.bathrooms > 0) {
+              items.push(<span key="ba">{property.bathrooms} {t.card.bathrooms}</span>);
+            }
+            return items.flatMap((node, i) => [
+              <span key={`dot-${i}`}>·</span>,
+              node,
+            ]);
+          })()}
         </div>
+        {/* Rating block: SHORT_STAY only. Guest ratings don't apply to a
+            sale or a long-term lease - those buyers care about location +
+            condition, not a star score. Location chip stays for everyone. */}
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink">
-          <span className="inline-flex items-center gap-1 font-semibold">
-            <Star className="h-4 w-4 fill-ink text-ink" />
-            {/* Real numbers — pulled from this property's review pool
-                (see getReviewCount / getAverageRating). The seeded
-                `property.rating` / `property.reviewCount` fields are
-                only used as a fallback for listings without imported
-                reviews yet. */}
-            {displayRating.toFixed(2)}
-            <span className="font-normal text-ink-soft">({displayReviewCount})</span>
-          </span>
-          <span className="text-ink-soft">·</span>
+          {property.listingKind === "SHORT_STAY" && (
+            <>
+              <span className="inline-flex items-center gap-1 font-semibold">
+                <Star className="h-4 w-4 fill-ink text-ink" />
+                {displayRating.toFixed(2)}
+                <span className="font-normal text-ink-soft">({displayReviewCount})</span>
+              </span>
+              <span className="text-ink-soft">·</span>
+            </>
+          )}
           <span className="inline-flex items-center gap-1.5 text-ink-muted">
             <MapPin className="h-3.5 w-3.5 text-brand-500" />
             {property.area}, {property.city}
@@ -244,14 +274,22 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
             </section>
           )}
 
+          {/* Caractéristiques - structured per-type facts grid (surface,
+              étage, année, état, parking, titre foncier, etc.). Renders
+              nothing when no structured fields are set, so SHORT_STAY
+              listings stay unchanged. */}
+          <div className="border-b border-cream-300 pb-12">
+            <PropertySpecs property={property} />
+          </div>
+
           {/* Agréments */}
           <div className="border-b border-cream-300 pb-12">
             <Amenities amenities={property.amenities} />
           </div>
 
-          {/* Jours disponibles — inline 1-month date picker. Mobile-only
-              price breakdown sits below it so users see the cost before
-              hitting the sticky Reserve bar. */}
+          {/* Jours disponibles - inline 1-month date picker. SHORT_STAY only;
+              the calendar makes no sense for sales or long-term leases. */}
+          {property.listingKind === "SHORT_STAY" && (
           <div className="border-b border-cream-300 pb-12">
             <AvailabilityInline blocked={blockedRanges} />
 
@@ -280,18 +318,17 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
               </div>
             )}
           </div>
+          )}
 
-          {/* Commentaires — moved up between dates and the map so the
-              page reads in the order users naturally consider: see the
-              place → check amenities → check availability → read what
-              guests said → see the area → review the rules. */}
-          <div className="border-b border-cream-300 pb-12">
-            {/* Reviews pulls this property's review array from the
-                JSON pool keyed by slug. `propertyTitle` is forwarded to
-                the "Leave a review" form so the WhatsApp prefill names
-                the actual listing the visitor is rating. */}
-            <Reviews slug={property.slug} propertyTitle={title} />
-          </div>
+          {/* Commentaires - SHORT_STAY only. Guest reviews don't apply
+              to a property that's for sale or on a 12-month lease; what
+              matters there is location + condition + the conseiller, not
+              a star score. */}
+          {property.listingKind === "SHORT_STAY" && (
+            <div className="border-b border-cream-300 pb-12">
+              <Reviews slug={property.slug} propertyTitle={title} />
+            </div>
+          )}
 
           {/* "Where you'll be" — privacy-preserving zone map + a
               neighborhood blurb keyed off the property's `area`. The
@@ -334,7 +371,10 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
             );
           })()}
 
-          {/* Bon à savoir — Règles de la maison */}
+          {/* Bon à savoir — Règles de la maison. SHORT_STAY only: check-in
+              times, no-smoking policy etc. don't apply to a sale or an annual
+              lease (those have their own rule set negotiated at signing). */}
+          {property.listingKind === "SHORT_STAY" && (
           <section>
             <h2 className="font-display text-lg font-bold text-ink sm:text-xl">{t.rules.sectionTitle}</h2>
             <h3 className="mt-4 text-sm font-semibold text-ink">{t.detail.rulesTitle}</h3>
@@ -370,15 +410,28 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
               {showAllRules ? t.rules.showLess : t.rules.showMore}
             </button>
           </section>
+          )}
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <BookingWidget
-            property={property}
-            blocked={blockedRanges}
-            fees={fees}
-            whatsappNumber={whatsappNumber}
-          />
+          {/* Sidebar branches on listingKind:
+              SHORT_STAY -> BookingWidget (calendar + nightly maths)
+              SALE / RENT_LONG -> PropertyInquiryForm (lead capture).
+              Keeps the existing booking flow intact while giving real-estate
+              listings their own conversion widget. */}
+          {property.listingKind === "SHORT_STAY" ? (
+            <BookingWidget
+              property={property}
+              blocked={blockedRanges}
+              fees={fees}
+              whatsappNumber={whatsappNumber}
+            />
+          ) : (
+            <PropertyInquiryForm
+              property={property}
+              whatsappPhoneIntl={whatsappNumber?.replace(/\D/g, "") || undefined}
+            />
+          )}
         </aside>
       </div>
 

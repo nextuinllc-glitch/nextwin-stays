@@ -1,4 +1,20 @@
-export type PropertyType = "riad" | "villa" | "apartment";
+export type PropertyType =
+  | "riad"
+  | "villa"
+  | "apartment"
+  | "terrain"
+  | "bureau"      // office / plateau de bureaux (covers any office floor, big or small)
+  | "magasin"     // shop / retail unit
+  | "commercial"; // legacy catch-all, kept for back-compat with seeded rows
+
+// Listing kind — drives both the public flow (booking vs. inquiry) and which
+// price field is canonical. Stored as a plain string in the DB for flexibility.
+//   "SHORT_STAY" : nightly rental, uses pricePerNight + Reservation calendar
+//   "RENT_LONG"  : monthly long-term lease, uses monthlyRent + inquiry form
+//   "SALE"       : property for sale, uses salePrice + inquiry form
+export type ListingKind = "SHORT_STAY" | "RENT_LONG" | "SALE";
+
+export const LISTING_KINDS: ListingKind[] = ["SHORT_STAY", "RENT_LONG", "SALE"];
 
 // Localised string bundle — { fr, en, ar } per textual field. Server
 // resolves a sensible default (locale-resolved string) into the top-level
@@ -18,8 +34,43 @@ export type Property = {
   guests: number;
   bedrooms: number;
   bathrooms: number;
-  pricePerNight: number;
-  currency: "EUR";
+
+  // Listing kind. Determines which price field is the canonical one and
+  // which public flow the property uses (booking calendar vs. inquiry).
+  // Optional on the TS type so the legacy seed array doesn't need to be
+  // exhaustively annotated; the DB column defaults to "SHORT_STAY" and the
+  // repo always returns a value.
+  listingKind?: ListingKind;
+
+  pricePerNight: number;          // SHORT_STAY: nightly rate, minor units (cents)
+  monthlyRent?: number | null;    // RENT_LONG : monthly rent, minor units
+  salePrice?: number | null;      // SALE      : total sale price, minor units
+  surfaceM2?: number | null;      // "Surface habitable" - built/living area (m²)
+  currency: "EUR" | "MAD";
+
+  // -------- Real-estate structured fields (SALE / RENT_LONG) --------
+  landSurfaceM2?: number | null;     // Surface terrain (villas, terrains)
+  floor?: number | null;             // Étage du bien (apt, bureau, magasin)
+  totalFloors?: number | null;       // Total floors of the building (apt)
+  yearBuilt?: number | null;         // Année de construction
+  condition?: string | null;         // "Neuf" | "Bon état" | "À rénover" | "Jamais habité"
+  standing?: string | null;          // "Haut standing" | "Standing moyen" | "Économique"
+  orientation?: string | null;       // "Sud", "Sud-Est", etc.
+  furnished?: boolean | null;        // Meublé / Non meublé
+  parkingSpaces?: number | null;     // Places de parking
+  // Terrain-only
+  landStatus?: string | null;        // Titré / En cours / Réquisition / Non titré
+  landZoning?: string | null;        // Constructible R+1, Lot de villa, etc.
+  // Rental-only (RENT_LONG)
+  securityDeposit?: number | null;   // Caution, en mois
+  monthlyCharges?: number | null;    // Charges syndic mensuelles (minor units)
+  agencyFeeMonths?: number | null;   // Frais d'agence en mois
+  // Commercial (bureau / magasin)
+  ceilingHeight?: number | null;     // Hauteur sous plafond (m)
+  // Three universal extras from Avito
+  salons?: number | null;            // Nombre de salons
+  apartmentSubtype?: string | null;  // Studio / Duplex / Triplex / Loft / Standard
+  availability?: string | null;      // "Immédiate" or a date string
   shortDescription: string;
   description: string;
   // All-language variants for client-side locale switching. The server
@@ -395,16 +446,22 @@ export const PROPERTY_TYPE_LABEL: Record<PropertyType, string> = {
   riad: "Riad",
   villa: "Villa",
   apartment: "Apartment",
+  terrain: "Terrain",
+  bureau: "Bureau",
+  magasin: "Magasin",
+  commercial: "Commercial",
 };
 
 // Airbnb / Menara-style neutral badges — solid ink with white text, same
-// chip for every type. Type is signalled by the label itself ("Villa",
-// "Riad", "Appartement"), not by colour, so the cards stay calm and
-// keep the magenta CTA as the single attention-grabbing accent on the
-// page. Keep the map keyed by type so future per-type styling can be
-// re-introduced without changing the call sites.
+// chip for every type. Type is signalled by the label itself, not by
+// colour, so the cards stay calm and the magenta CTA stays the single
+// attention-grabbing accent on the page.
 export const PROPERTY_TYPE_BADGE_CLASS: Record<PropertyType, string> = {
   villa: "bg-ink text-white",
   apartment: "bg-ink text-white",
   riad: "bg-ink text-white",
+  terrain: "bg-ink text-white",
+  bureau: "bg-ink text-white",
+  magasin: "bg-ink text-white",
+  commercial: "bg-ink text-white",
 };

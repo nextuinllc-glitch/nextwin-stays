@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type LogoProps = {
   className?: string;
@@ -29,10 +30,16 @@ export function Logo({ className, variant = "default" }: LogoProps) {
   const markStroke = isLight ? "text-white" : "text-brand-600";
   const dotTone = isLight ? "text-white/60" : "text-brand-500";
 
+  // Sub-mark reflects the broader brand: "Immobilier" (FR) / "Real estate"
+  // (EN) / "عقارات" (AR), pulled from the i18n dictionary so it tracks the
+  // active locale automatically.
+  const { t } = useI18n();
+  const subMark = t.logo.tagline;
+
   return (
     <Link
       href="/"
-      aria-label="NEXTWIN STAY · Marrakech"
+      aria-label={`NEXTWIN · ${subMark} · Marrakech`}
       // Force-scroll the document to the very top whenever the Logo is
       // tapped. Next.js's App Router default IS to scroll on Link, but
       // iOS Safari aggressively restores the previous scroll position
@@ -86,7 +93,7 @@ export function Logo({ className, variant = "default" }: LogoProps) {
             inkTone,
           )}
         >
-          Nextwin <span className={dotTone}>·</span> Stay
+          Nextwin <span className={dotTone}>·</span> {subMark}
         </span>
         <span
           className={cn(

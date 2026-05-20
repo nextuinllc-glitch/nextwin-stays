@@ -43,6 +43,13 @@ export async function POST(req: Request) {
   const existing = await prisma.property.findUnique({ where: { slug } });
   if (existing) slug = `${slug}-${Date.now().toString().slice(-4)}`;
 
+  // Accept the listing kind and the kind-specific price fields. Defaults to
+  // SHORT_STAY (back-compat with the original Stay-only API).
+  const allowedKinds = ["SHORT_STAY", "RENT_LONG", "SALE"];
+  const listingKind: string = allowedKinds.includes(body.listingKind)
+    ? body.listingKind
+    : "SHORT_STAY";
+
   const property = await prisma.property.create({
     data: {
       slug,
@@ -51,11 +58,18 @@ export async function POST(req: Request) {
       city: body.city ?? "Marrakech",
       rating: Number(body.rating) || 4.85,
       reviewCount: Number(body.reviewCount) || 0,
-      guests: Number(body.guests) || 1,
-      bedrooms: Number(body.bedrooms) || 1,
-      bathrooms: Number(body.bathrooms) || 1,
+      guests: Number(body.guests) || (listingKind === "SHORT_STAY" ? 1 : 0),
+      bedrooms: Number(body.bedrooms) || 0,
+      bathrooms: Number(body.bathrooms) || 0,
+      listingKind,
       pricePerNight: Number(body.pricePerNight) || 0,
-      currency: body.currency ?? "EUR",
+      monthlyRent:
+        body.monthlyRent == null || body.monthlyRent === "" ? null : Number(body.monthlyRent),
+      salePrice:
+        body.salePrice == null || body.salePrice === "" ? null : Number(body.salePrice),
+      surfaceM2:
+        body.surfaceM2 == null || body.surfaceM2 === "" ? null : Number(body.surfaceM2),
+      currency: body.currency ?? (listingKind === "SHORT_STAY" ? "EUR" : "MAD"),
       titleFr: body.titleFr,
       titleEn: body.titleEn || null,
       titleAr: body.titleAr || null,
@@ -81,6 +95,38 @@ export async function POST(req: Request) {
       rulePets: body.rulePets || "Sur demande",
       ruleSmoking: body.ruleSmoking || "Interdit à l'intérieur",
       ruleAdditional: body.ruleAdditional || null,
+
+      // Real-estate structured fields. All optional - null when not given.
+      landSurfaceM2:
+        body.landSurfaceM2 == null || body.landSurfaceM2 === "" ? null : Number(body.landSurfaceM2),
+      floor:
+        body.floor == null || body.floor === "" ? null : Number(body.floor),
+      totalFloors:
+        body.totalFloors == null || body.totalFloors === "" ? null : Number(body.totalFloors),
+      yearBuilt:
+        body.yearBuilt == null || body.yearBuilt === "" ? null : Number(body.yearBuilt),
+      condition: body.condition || null,
+      standing: body.standing || null,
+      orientation: body.orientation || null,
+      furnished:
+        body.furnished == null ? null : Boolean(body.furnished),
+      parkingSpaces:
+        body.parkingSpaces == null || body.parkingSpaces === "" ? null : Number(body.parkingSpaces),
+      landStatus: body.landStatus || null,
+      landZoning: body.landZoning || null,
+      securityDeposit:
+        body.securityDeposit == null || body.securityDeposit === "" ? null : Number(body.securityDeposit),
+      monthlyCharges:
+        body.monthlyCharges == null || body.monthlyCharges === "" ? null : Number(body.monthlyCharges),
+      agencyFeeMonths:
+        body.agencyFeeMonths == null || body.agencyFeeMonths === "" ? null : Number(body.agencyFeeMonths),
+      ceilingHeight:
+        body.ceilingHeight == null || body.ceilingHeight === "" ? null : Number(body.ceilingHeight),
+      salons:
+        body.salons == null || body.salons === "" ? null : Number(body.salons),
+      apartmentSubtype: body.apartmentSubtype || null,
+      availability: body.availability || null,
+
       images: {
         create: Array.isArray(body.images)
           ? body.images.map((img: { src: string; alt?: string }, i: number) => ({

@@ -10,23 +10,39 @@ type Counts = {
   riad: number;
   villa: number;
   apartment: number;
+  // Real-estate-only types - hidden when zero (court séjour catalog
+  // has none of these in practice). Bureau covers any office floor,
+  // big or small.
+  terrain: number;
+  bureau: number;
+  magasin: number;
+  commercial: number;
 };
 
 const TABS: Array<{ id: keyof Counts; label: string; tone: string }> = [
-  { id: "all", label: "Toutes", tone: "border-brand-600 text-brand-700 bg-brand-50" },
-  { id: "riad", label: "Riad", tone: "border-amber-500 text-amber-700 bg-amber-50" },
-  { id: "villa", label: "Villa", tone: "border-violet-500 text-violet-700 bg-violet-50" },
-  {
-    id: "apartment",
-    label: "Appartement",
-    tone: "border-sky-500 text-sky-700 bg-sky-50",
-  },
+  { id: "all",        label: "Toutes",      tone: "border-brand-600 text-brand-700 bg-brand-50" },
+  { id: "villa",      label: "Villa",       tone: "border-violet-500 text-violet-700 bg-violet-50" },
+  { id: "riad",       label: "Riad",        tone: "border-amber-500 text-amber-700 bg-amber-50" },
+  { id: "apartment",  label: "Appartement", tone: "border-sky-500 text-sky-700 bg-sky-50" },
+  { id: "terrain",    label: "Terrain",     tone: "border-emerald-500 text-emerald-700 bg-emerald-50" },
+  { id: "bureau",     label: "Bureau",      tone: "border-indigo-500 text-indigo-700 bg-indigo-50" },
+  { id: "magasin",    label: "Magasin",     tone: "border-orange-500 text-orange-700 bg-orange-50" },
+  { id: "commercial", label: "Commercial",  tone: "border-rose-500 text-rose-700 bg-rose-50" },
 ];
 
 // State lives entirely in the URL (?type=&q=) so the server component owns
 // the filtering and there's no client-side data fetching. useTransition
 // keeps the pills snappy while the server re-renders behind the scenes.
-export function PropertyFilterBar({ counts }: { counts: Counts }) {
+// The base href is what the kind-specific admin route the bar lives on
+// (e.g. /admin/acheter) - we splice ?type/?q onto it so navigation stays
+// scoped to that section.
+export function PropertyFilterBar({
+  counts,
+  baseHref = "/admin/properties",
+}: {
+  counts: Counts;
+  baseHref?: string;
+}) {
   const router = useRouter();
   const params = useSearchParams();
   const [pending, startTransition] = useTransition();
@@ -39,7 +55,8 @@ export function PropertyFilterBar({ counts }: { counts: Counts }) {
     if (value && value !== "all") next.set(key, value);
     else next.delete(key);
     startTransition(() => {
-      router.replace(`/admin/properties?${next.toString()}`, { scroll: false });
+      const qs = next.toString();
+      router.replace(`${baseHref}${qs ? `?${qs}` : ""}`, { scroll: false });
     });
   };
 
@@ -52,6 +69,8 @@ export function PropertyFilterBar({ counts }: { counts: Counts }) {
     >
       <div className="flex flex-wrap items-center gap-2">
         {TABS.map((tab) => {
+          // Hide empty type pills (e.g. court séjour has no terrain entries).
+          if (tab.id !== "all" && counts[tab.id] === 0) return null;
           const active = currentType === tab.id;
           return (
             <button

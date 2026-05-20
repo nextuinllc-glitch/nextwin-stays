@@ -19,10 +19,13 @@ export function Footer({ contact }: Props) {
   return (
     // Editorial footer — bone-cream panel with a gold hairline at the
     // top instead of a grey border, so the section feels finished by a
-    // metal rule rather than a sheet break.
+    // metal rule rather than a sheet break. Five-column grid on desktop
+    // (brand block spans 2 + three link columns) so the four service
+    // categories (Court séjour / Long durée / Achat / Gestion) fit
+    // alongside the Société and Nous joindre lists.
     <footer className="mt-24 border-t border-brand-500/30 bg-cream-100 text-ink-muted">
       <div className="container-page py-20 sm:py-24">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
           <div className="md:col-span-2">
             <Logo />
             <p className="mt-5 max-w-sm text-sm leading-relaxed">
@@ -53,18 +56,32 @@ export function Footer({ contact }: Props) {
             </div>
           </div>
 
+          {/* Nos offres - the four service entry points */}
           <div>
             <h4 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink">
               {t.footer.explore}
             </h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link href="/properties" className="transition hover:text-ink">{t.footer.allStays}</Link></li>
-              <li><Link href="/properties?type=riad" className="transition hover:text-ink">{t.footer.riads}</Link></li>
-              <li><Link href="/properties?type=villa" className="transition hover:text-ink">{t.footer.villas}</Link></li>
-              <li><Link href="/properties?type=apartment" className="transition hover:text-ink">{t.footer.apartments}</Link></li>
+              <li><Link href="/properties" className="transition hover:text-ink">{t.footer.shortStay}</Link></li>
+              <li><Link href="/louer" className="transition hover:text-ink">{t.footer.rentLong}</Link></li>
+              <li><Link href="/acheter" className="transition hover:text-ink">{t.footer.buy}</Link></li>
+              <li><Link href="/gestion" className="transition hover:text-ink">{t.footer.gestion}</Link></li>
             </ul>
           </div>
 
+          {/* Société - brand pages (about, team, contact) */}
+          <div>
+            <h4 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink">
+              {t.footer.company}
+            </h4>
+            <ul className="space-y-2.5 text-sm">
+              <li><Link href="/about" className="transition hover:text-ink">{t.footer.about}</Link></li>
+              <li><Link href="/about#team" className="transition hover:text-ink">{t.footer.team}</Link></li>
+              <li><Link href="/contact" className="transition hover:text-ink">{t.footer.contact}</Link></li>
+            </ul>
+          </div>
+
+          {/* Nous joindre - admin-managed contact info (address, phone, email) */}
           <div>
             <h4 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink">
               {t.footer.reach}

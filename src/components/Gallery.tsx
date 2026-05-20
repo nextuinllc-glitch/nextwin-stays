@@ -5,14 +5,19 @@ import { useEffect, useRef, useState } from "react";
 import { X, ChevronLeft, ChevronRight, Grid2x2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nProvider";
+import { ComingSoonOverlay } from "@/components/ComingSoonOverlay";
 
 type Img = { src: string; alt: string };
 
 type Props = {
   images: Img[];
+  // When true, the locale-aware "Bientôt disponible" overlay is layered
+  // on top of every visible image tile (hero + grid). Used by the SALE
+  // and RENT_LONG detail pages while their inventory isn't ready yet.
+  comingSoon?: boolean;
 };
 
-export function Gallery({ images }: Props) {
+export function Gallery({ images, comingSoon = false }: Props) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   // `index` is shared between the lightbox and the mobile swipe carousel
@@ -124,6 +129,7 @@ export function Gallery({ images }: Props) {
               {index + 1} / {total}
             </span>
           )}
+          {comingSoon && <ComingSoonOverlay size="gallery" />}
         </div>
       </div>
 
@@ -141,6 +147,7 @@ export function Gallery({ images }: Props) {
             priority
             className="object-cover transition hover:scale-[1.02]"
           />
+          {comingSoon && <ComingSoonOverlay size="gallery" />}
         </button>
         {secondaryTiles.map((img, i) => (
           <button

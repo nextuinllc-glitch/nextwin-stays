@@ -92,6 +92,24 @@ function formatPhone(raw: string): string {
   return raw;
 }
 
+// Admin-picked home-featured slugs. Each is the slug of the property the
+// admin wants surfaced on the home page for that listing kind, or null to
+// fall back to the auto-pick (first published in that kind).
+export type HomeFeaturedSlugs = {
+  shortStay: string | null;
+  rentLong: string | null;
+  sale: string | null;
+};
+
+export async function getHomeFeaturedSlugs(): Promise<HomeFeaturedSlugs> {
+  const s = await getSettings();
+  return {
+    shortStay: (s as unknown as { homeFeaturedShortStaySlug?: string | null }).homeFeaturedShortStaySlug ?? null,
+    rentLong: (s as unknown as { homeFeaturedRentLongSlug?: string | null }).homeFeaturedRentLongSlug ?? null,
+    sale: (s as unknown as { homeFeaturedSaleSlug?: string | null }).homeFeaturedSaleSlug ?? null,
+  };
+}
+
 export async function getContactSettings(): Promise<ContactSettings> {
   const s = await getSettings();
   const whatsappDigits = s.whatsappNumber.replace(/[^\d]/g, "");

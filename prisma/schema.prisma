@@ -19,7 +19,7 @@ datasource db {
 model Property {
   id            String   @id @default(cuid())
   slug          String   @unique
-  type          String   // "riad" | "villa" | "apartment"
+  type          String   // "riad" | "villa" | "apartment" | "terrain" | "commercial"
   area          String
   city          String   @default("Marrakech")
   rating        Float    @default(4.85)
@@ -27,8 +27,52 @@ model Property {
   guests        Int
   bedrooms      Int
   bathrooms     Int
-  pricePerNight Int
-  currency      String   @default("EUR")
+
+  // Listing kind — determines which price field is canonical and which
+  // public flow (booking calendar vs. inquiry) is used.
+  //   "SHORT_STAY"  : nightly rental, uses pricePerNight + Reservation
+  //   "RENT_LONG"   : monthly long-term lease, uses monthlyRent + inquiry
+  //   "SALE"        : property for sale, uses salePrice + inquiry
+  listingKind   String   @default("SHORT_STAY")
+
+  pricePerNight Int      @default(0)   // SHORT_STAY: nightly rate, minor units
+  monthlyRent   Int?                   // RENT_LONG: monthly rent, minor units
+  salePrice     Int?                   // SALE: total sale price, minor units
+  surfaceM2     Int?                   // "Surface habitable" - built/living area (m²)
+
+  currency      String   @default("EUR")  // "EUR" | "MAD"
+
+  // -------------- Real-estate structured fields --------------
+  // Mostly used by SALE + RENT_LONG; optional for SHORT_STAY.
+  // Modelled after the structured field set surfaced by Mubawab.ma
+  // and Avito.ma so Moroccan buyers/renters see what they expect.
+  landSurfaceM2     Int?      // "Surface terrain" - land/plot (villas, terrains)
+  floor             Int?      // "Étage du bien" (apartments, bureaux, magasins)
+  totalFloors       Int?      // Total floors in the building (apartments)
+  yearBuilt         Int?      // Année de construction
+  condition         String?   // "Neuf" | "Bon état" | "À rénover" | "Jamais habité"
+  standing          String?   // "Haut standing" | "Standing moyen" | "Économique"
+  orientation       String?   // "Nord" | "Sud" | "Est" | "Ouest" | "Sud-Est" etc.
+  furnished         Boolean?  // Meublé / Non meublé
+  parkingSpaces     Int?      // Number of parking spots included
+
+  // Terrain-specific
+  landStatus        String?   // "Titré" | "En cours de titrement" | "Réquisition" | "Non titré"
+  landZoning        String?   // "Constructible R+1" | "Lot de villa" | "Agricole" etc.
+
+  // Long-term rental specific (RENT_LONG)
+  securityDeposit   Int?      // Caution, expressed in number of months
+  monthlyCharges    Int?      // Charges syndic mensuelles, minor units
+  agencyFeeMonths   Float?    // Frais d'agence, in months (typically 1)
+
+  // Commercial-specific (bureau / magasin / plateau de bureaux)
+  ceilingHeight     Float?    // Hauteur sous plafond (m)
+
+  // Three universal fields Avito.ma surfaces on most categories.
+  salons            Int?      // Nombre de salons (Moroccan listings split salons from chambres)
+  apartmentSubtype  String?   // "Standard" | "Studio" | "Duplex" | "Triplex" | "Loft"
+  availability      String?   // "Immédiate" | "2026-09" | etc.
+  // ------------------------------------------------------------
 
   // Multilingual title + descriptions. FR is primary, EN/AR optional.
   titleFr            String
@@ -208,6 +252,14 @@ model Settings {
   cleaningFee    Int @default(45)
   serviceFeeRate Float @default(0.07)
 
+  // Manual home-featured picks. Each slug points to one published property
+  // that the admin wants surfaced on the home page's three-card strip
+  // (Court séjour, Long durée, Acheter). When NULL, the home page falls
+  // back to its automatic pick (first match by kind).
+  homeFeaturedShortStaySlug String?
+  homeFeaturedRentLongSlug  String?
+  homeFeaturedSaleSlug      String?
+
   updatedAt DateTime @updatedAt
 }
 
@@ -259,4 +311,81 @@ model Review {
 
   @@index([propertySlug, status])
   @@index([status])
+}
+
+// Property inquiry — lead captured from the public SALE / RENT_LONG
+// detail-page form (the SHORT_STAY flow uses Reservation, not Inquiry).
+// The admin queue at /admin/inquiries triages each one (Nouveau, Traité,
+// Converti, Spam) and can convert to a Client + follow-up record.
+model Inquiry {
+  id             String   @id @default(cuid())
+  propertySlug   String?  // null when sent from the generic /contact form
+  propertyTitle  String?  // denormalised so the admin sees what the lead asked about even if the listing is later deleted
+  kind           String   @default("SALE")  // "SALE" | "RENT_LONG" | "GENERAL"
+
+  name           String
+  email          String?
+  phone          String?
+  message        String
+
+  status         String   @default("new")    // "new" | "treated" | "converted" | "spam"
+  source         String   @default("DETAIL") // "DETAIL" | "CONTACT" | "WHATSAPP"
+  notes          String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status])
+  @@index([propertySlug])
+  @@index([createdAt])
+}
+
+// Founding team / advisors. Drives the "Notre équipe" section on /about
+// and an editorial sign-off on the home page. Admin-managed so the
+// founders can add a 4th conseiller or rotate roles without a deploy.
+model TeamMember {
+  id        Int    @id @default(autoincrement())
+  slug      String @unique           // "abdou" | "simo" | "ahmed" — stable URL/anchor handle
+
+  // Display fields
+  name      String                   // "Abdou", "Simo", "Ahmed"
+  // Per-locale role + bio. FR is the canonical fallback (matches the
+  // pattern used on Property / Settings); EN / AR are optional and the
+  // public component falls back to FR when missing.
+  roleFr    String
+  roleEn    String?
+  roleAr    String?
+  bioFr     String  @default("")
+  bioEn     String?
+  bioAr     String?
+
+  // Optional photo URL — published on Cloudflare R2 via /api/admin/upload.
+  // When null, the card renders an elegant monogram tile instead.
+  photoUrl  String?
+
+  // Direct-contact shortcuts. WhatsApp digits only (no leading +), email
+  // and phone in their natural form. All optional so a teammate can opt
+  // out of being a direct contact and still appear on /about.
+  whatsapp  String?
+  email     String?
+  phone     String?
+
+  // Listing-kind specialty. Lets the public team card flag the
+  // person as "Spécialiste · Long durée / Court séjour / Achat" so
+  // a visitor knows which conseiller to contact directly.
+  // Stored as a plain string (SHORT_STAY | RENT_LONG | SALE) to mirror
+  // the Property.listingKind column. NULL = no specialty (e.g. a
+  // generalist founder or admin role).
+  specialty String?
+
+  // Visibility + ordering. Same pattern as Property: a `position` int
+  // drives the public order, `published` lets the admin draft a new
+  // member without surfacing them on the public site yet.
+  position  Int     @default(0)
+  published Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([position])
 }

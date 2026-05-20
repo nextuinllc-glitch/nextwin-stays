@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
-import { SearchBar } from "./SearchBar";
 import { useI18n } from "@/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
@@ -225,7 +224,7 @@ export function Hero({
           >
             Nextwin
             <span aria-hidden className="mx-1.5 align-middle text-white/45 sm:mx-3">·</span>
-            Stay
+            {t.logo.tagline}
           </h1>
 
           {/* Editorial dateline — tracked label below the wordmark
@@ -247,20 +246,13 @@ export function Hero({
             </p>
           )}
 
-          {/* Search form: desktop only. On mobile the floating bottom-nav
-              "Dates" button is the entry point — we keep the hero clean
-              and cinematic instead of crowded with form fields. */}
-          <div className="mt-12 hidden w-full md:block">
-            <div className="flex justify-center">
-              {/* Suspense boundary required because SearchBar reads
-                  useSearchParams() to hydrate dates / guests from URL,
-                  which static-export builds can't pre-render without
-                  it. */}
-              <Suspense>
-                <SearchBar variant="hero" />
-              </Suspense>
-            </div>
-          </div>
+          {/* Date + guests search bar intentionally removed from the global
+              hero. It was a SHORT_STAY-only entry point (Airbnb-style book-
+              ing flow); now that the site spans Acheter, Louer and Court
+              séjour, the canonical entry is the kind-aware category pills
+              on the "Nos meilleures propriétés" section just below the
+              hero. The date picker still ships on /properties (the Court
+              séjour catalogue) for the booking flow. */}
         </div>
 
         {/* Scroll cue — a glass pill at the bottom-center of the hero

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1140" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F8F4EC"/>
+      <stop offset="100%" stop-color="#EDE7DA"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Cream background with a delicate vertical wash -->
+  <rect width="1200" height="1140" fill="url(#bg)"/>
+
+  <!-- Outer editorial frame - thin double hairline -->
+  <rect x="60" y="60" width="1080" height="1020" fill="none" stroke="#222" stroke-opacity="0.08" stroke-width="2"/>
+  <rect x="78" y="78" width="1044" height="984" fill="none" stroke="#E00B41" stroke-opacity="0.25" stroke-width="1"/>
+
+  <!-- Centre ornament - vertical brand hairline (text is layered on top
+       by the consuming card / gallery so the message is locale-aware) -->
+  <line x1="600" y1="490" x2="600" y2="650" stroke="#E00B41" stroke-opacity="0.45" stroke-width="1.5"/>
+</svg>

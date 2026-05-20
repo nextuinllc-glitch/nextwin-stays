@@ -10,6 +10,36 @@ async function guard() {
   return null;
 }
 
+// PATCH helpers for the optional real-estate fields.
+// Three-state semantics:
+//   body field missing entirely     -> keep existing
+//   body field === null OR ""       -> clear to null
+//   otherwise                        -> coerce to the right primitive
+type Existing = Record<string, unknown>;
+function patchInt(existing: Existing, body: Record<string, unknown>, key: string) {
+  if (!(key in body)) return { [key]: existing[key] ?? null };
+  const v = body[key];
+  if (v === null || v === "") return { [key]: null };
+  return { [key]: Number(v) };
+}
+function patchFloat(existing: Existing, body: Record<string, unknown>, key: string) {
+  if (!(key in body)) return { [key]: existing[key] ?? null };
+  const v = body[key];
+  if (v === null || v === "") return { [key]: null };
+  return { [key]: Number(v) };
+}
+function patchStr(existing: Existing, body: Record<string, unknown>, key: string) {
+  if (!(key in body)) return { [key]: existing[key] ?? null };
+  const v = body[key];
+  return { [key]: v ? String(v) : null };
+}
+function patchBool(existing: Existing, body: Record<string, unknown>, key: string) {
+  if (!(key in body)) return { [key]: existing[key] ?? null };
+  const v = body[key];
+  if (v === null) return { [key]: null };
+  return { [key]: Boolean(v) };
+}
+
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await guard();
   if (denied) return denied;
@@ -61,8 +91,27 @@ export async function PATCH(
       guests: body.guests != null ? Number(body.guests) : existing.guests,
       bedrooms: body.bedrooms != null ? Number(body.bedrooms) : existing.bedrooms,
       bathrooms: body.bathrooms != null ? Number(body.bathrooms) : existing.bathrooms,
+      listingKind: body.listingKind ?? (existing as { listingKind?: string }).listingKind ?? "SHORT_STAY",
       pricePerNight:
         body.pricePerNight != null ? Number(body.pricePerNight) : existing.pricePerNight,
+      monthlyRent:
+        body.monthlyRent === undefined
+          ? (existing as { monthlyRent?: number | null }).monthlyRent ?? null
+          : body.monthlyRent === null || body.monthlyRent === ""
+            ? null
+            : Number(body.monthlyRent),
+      salePrice:
+        body.salePrice === undefined
+          ? (existing as { salePrice?: number | null }).salePrice ?? null
+          : body.salePrice === null || body.salePrice === ""
+            ? null
+            : Number(body.salePrice),
+      surfaceM2:
+        body.surfaceM2 === undefined
+          ? (existing as { surfaceM2?: number | null }).surfaceM2 ?? null
+          : body.surfaceM2 === null || body.surfaceM2 === ""
+            ? null
+            : Number(body.surfaceM2),
       currency: body.currency ?? existing.currency,
       titleFr: body.titleFr ?? existing.titleFr,
       titleEn: body.titleEn ?? existing.titleEn,
@@ -104,6 +153,27 @@ export async function PATCH(
         body.ruleAdditional === undefined
           ? existing.ruleAdditional
           : body.ruleAdditional || null,
+
+      // ---- Real-estate structured fields ----
+      // Pattern: body undefined => keep existing; "" or null => null; otherwise coerce.
+      ...patchInt(existing, body, "landSurfaceM2"),
+      ...patchInt(existing, body, "floor"),
+      ...patchInt(existing, body, "totalFloors"),
+      ...patchInt(existing, body, "yearBuilt"),
+      ...patchStr(existing, body, "condition"),
+      ...patchStr(existing, body, "standing"),
+      ...patchStr(existing, body, "orientation"),
+      ...patchBool(existing, body, "furnished"),
+      ...patchInt(existing, body, "parkingSpaces"),
+      ...patchStr(existing, body, "landStatus"),
+      ...patchStr(existing, body, "landZoning"),
+      ...patchInt(existing, body, "securityDeposit"),
+      ...patchInt(existing, body, "monthlyCharges"),
+      ...patchFloat(existing, body, "agencyFeeMonths"),
+      ...patchFloat(existing, body, "ceilingHeight"),
+      ...patchInt(existing, body, "salons"),
+      ...patchStr(existing, body, "apartmentSubtype"),
+      ...patchStr(existing, body, "availability"),
     },
   });
 

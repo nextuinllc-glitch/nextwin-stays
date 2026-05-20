@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight, ShieldCheck, MessageCircle, Sparkles } from "lucide-react";
 import { Hero } from "@/components/Hero";
 import { PropertyGrid } from "@/components/PropertyGrid";
-import { CategoryButtons } from "@/components/CategoryButtons";
+import { HomePortal } from "@/components/HomePortal";
+import { OwnerCallout } from "@/components/OwnerCallout";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { Property } from "@/lib/properties";
 import type { HeroSettings } from "@/lib/settings-repo";
@@ -36,94 +35,59 @@ export function HomeContent({ featured, hero, pageContent }: Props) {
         tagline={hero.tagline}
       />
 
-      {/* Editorial section header — tighter top padding so the
-          "Marrakech · Curated stays" eyebrow + the section title peek
-          above the fold on first load and tell the visitor there's
-          more to scroll, instead of leaving them looking at a pure
-          black band under the hero. `#properties` is the anchor
-          target for the hero's scroll-cue chevron. */}
-      <section id="properties" className="container-page pb-4 pt-8 sm:pt-12">
-        <div className="flex flex-col items-center gap-8 text-center">
+      {/* Choose-your-lane portal - directly under the hero, qualifies the
+          visitor in a single tap. Three full-bleed columns mirror the
+          team's specialty system (Court séjour / Long durée / Achat),
+          so the entry point on the home page maps one-to-one with the
+          conseillers on /about. Anchor target for the hero's scroll-
+          cue chevron lives on this section. */}
+      <HomePortal />
+
+      {/* One featured property per kind - editorial sample of the
+          catalogue. Kept under the portal so visitors who already know
+          which lane they want can scroll past the portal to the cards;
+          visitors who need to be guided take the portal first.
+
+          Editorial transition: a thin vertical hairline drops from the
+          portal section above into this section, softening the hard
+          colour edge of an active portal column and signalling "next
+          chapter" without being loud. */}
+      <div className="container-page pt-12 sm:pt-20">
+        {/* Vertical chapter mark - delicate brand-tinted hairline that
+            visually bridges the saturated portal column above (which on
+            mobile is whatever lane is currently in view) with the cream
+            featured section below. */}
+        <span
+          aria-hidden
+          className="mx-auto block h-14 w-px bg-gradient-to-b from-brand-500/0 via-brand-500/40 to-brand-500/0 sm:h-20"
+        />
+        <div className="mx-auto mb-10 mt-10 max-w-2xl text-center sm:mb-14 sm:mt-14">
           <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-brand-600">
             {get("sectionEyebrow", t.home.sectionEyebrow)}
           </span>
-          <h2 className="font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
+          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl [text-wrap:balance]">
             {get("sectionTitle", t.home.sectionTitle)}
           </h2>
-          <span aria-hidden className="block h-px w-16 bg-brand-500/60" />
-          <CategoryButtons />
+          <span aria-hidden className="mx-auto mt-5 block h-px w-12 bg-brand-500/60" />
         </div>
-      </section>
-
-      <div className="pt-12 sm:pt-16">
         <PropertyGrid properties={featured} />
 
-        {/* "Voir tout" CTA — only shown when there are MORE properties
-            in the catalogue than what the home page features (otherwise
-            it'd link to the same six the user just scrolled through).
-            Rendered as an editorial outline pill, centred, with a soft
-            gold hairline beneath it for visual breath. */}
-        <div className="container-page mt-12 flex flex-col items-center gap-5 sm:mt-16">
-          <Link
-            href="/properties"
-            className="group inline-flex items-center gap-2 rounded-full border border-ink/80 bg-transparent px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.24em] text-ink transition hover:border-brand-600 hover:bg-brand-600 hover:text-white"
-          >
-            {get("seeAllCta", "Voir toutes les propriétés")}
-            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-          <span aria-hidden className="block h-px w-12 bg-brand-500/40" />
-        </div>
+        {/* Closing chapter mark for the featured grid - mirrors the
+            opening hairline above so the section feels bookended, and
+            softens the seam between the cream featured grid and the
+            dark Owner band that follows. */}
+        <span
+          aria-hidden
+          className="mx-auto mt-16 block h-14 w-px bg-gradient-to-b from-brand-500/0 via-brand-500/40 to-brand-500/0 sm:mt-24 sm:h-20"
+        />
       </div>
 
-      <section className="mt-24 bg-cream-100 sm:mt-32">
-        <div className="container-page py-24 sm:py-32">
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-brand-600">
-              Reservation
-            </span>
-            <h2 className="mt-4 font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
-              {get("bookingSimpleTitle", t.home.bookingSimpleTitle)}
-            </h2>
-            <span aria-hidden className="mx-auto mt-6 block h-px w-16 bg-brand-500/60" />
-            <p className="mt-6 text-base leading-relaxed text-ink-muted sm:text-lg">
-              {get("bookingSimpleSubtitle", t.home.bookingSimpleSubtitle)}
-            </p>
-          </div>
-
-          <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
-            <Step
-              icon={<Sparkles className="h-5 w-5" />}
-              title={get("stepCuratedTitle", t.home.stepCuratedTitle)}
-              body={get("stepCuratedBody", t.home.stepCuratedBody)}
-            />
-            <Step
-              icon={<ShieldCheck className="h-5 w-5" />}
-              title={get("stepCancelTitle", t.home.stepCancelTitle)}
-              body={get("stepCancelBody", t.home.stepCancelBody)}
-            />
-            <Step
-              icon={<MessageCircle className="h-5 w-5" />}
-              title={get("stepConciergeTitle", t.home.stepConciergeTitle)}
-              body={get("stepConciergeBody", t.home.stepConciergeBody)}
-            />
-          </div>
-        </div>
-      </section>
+      {/* Owner pivot - dark editorial band that targets a different
+          audience (owners who want their property managed). Routes the
+          interested ones to /gestion where the full pitch + lead form
+          lives, so the home page stays focused on the buyer/renter
+          journey. */}
+      <OwnerCallout />
     </>
-  );
-}
-
-function Step({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
-  return (
-    /* Editorial step card — bone surface, hairline border, gold accent
-       wrapping the icon. Generous padding so the card breathes. */
-    <div className="rounded-none border border-cream-300 bg-cream-50 p-10">
-      <div className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-brand-500/60 text-brand-600">
-        {icon}
-      </div>
-      <h3 className="mt-6 font-display text-xl font-semibold text-ink">{title}</h3>
-      <span aria-hidden className="mt-4 block h-px w-10 bg-brand-500/40" />
-      <p className="mt-4 text-[15px] leading-relaxed text-ink-muted">{body}</p>
-    </div>
   );
 }

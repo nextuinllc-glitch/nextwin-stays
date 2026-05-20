@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { LayoutDashboard, Home, LogOut, Settings as SettingsIcon, Globe, CalendarDays, ClipboardList, FileText, Star } from "lucide-react";
+import { LayoutDashboard, Home, LogOut, Settings as SettingsIcon, Globe, CalendarDays, ClipboardList, FileText, Star, Building2, KeyRound, BedDouble, Sparkles, Users } from "lucide-react";
 import { getCurrentSession } from "@/lib/auth";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
@@ -50,7 +50,42 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </NavItem>
           </NavGroup>
 
-          {/* Opérations — day-to-day booking work */}
+          {/* Catalogue - split per listing kind. Each section is its own
+              kind-scoped admin so the editor flow, filter chips, and pricing
+              column adapt to whether it's a sale, long-term rental, or
+              short-stay listing. */}
+          <NavGroup label="Catalogue">
+            <NavItem
+              href="/admin/acheter"
+              icon={<Building2 className="h-4 w-4" />}
+              accent="emerald"
+            >
+              Acheter
+            </NavItem>
+            <NavItem
+              href="/admin/louer"
+              icon={<KeyRound className="h-4 w-4" />}
+              accent="amber"
+            >
+              Louer
+            </NavItem>
+            <NavItem
+              href="/admin/court-sejour"
+              icon={<BedDouble className="h-4 w-4" />}
+              accent="sky"
+            >
+              Court séjour
+            </NavItem>
+            <NavItem
+              href="/admin/featured"
+              icon={<Sparkles className="h-4 w-4" />}
+              accent="navy"
+            >
+              Sélection Accueil
+            </NavItem>
+          </NavGroup>
+
+          {/* Opérations - day-to-day booking work (court séjour only) */}
           <NavGroup label="Opérations">
             <NavItem
               href="/admin/calendar"
@@ -75,21 +110,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </NavItem>
           </NavGroup>
 
-          {/* Configuration — catalogue & site settings */}
+          {/* Configuration - site-wide settings */}
           <NavGroup label="Configuration">
-            <NavItem
-              href="/admin/properties"
-              icon={<Home className="h-4 w-4" />}
-              accent="amber"
-            >
-              Propriétés
-            </NavItem>
             <NavItem
               href="/admin/pages"
               icon={<FileText className="h-4 w-4" />}
               accent="navy"
             >
               Pages
+            </NavItem>
+            <NavItem
+              href="/admin/team"
+              icon={<Users className="h-4 w-4" />}
+              accent="emerald"
+            >
+              Équipe
             </NavItem>
             <NavItem
               href="/admin/settings"

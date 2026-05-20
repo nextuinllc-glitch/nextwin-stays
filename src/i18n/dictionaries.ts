@@ -17,10 +17,27 @@ type Dict = {
   nav: {
     home: string;
     properties: string;
+    buy: string;       // Acheter
+    rentLong: string;  // Louer (long term)
+    shortStay: string; // Court séjour
     about: string;
     contact: string;
     bookCta: string;
     toggleMenu: string;
+  };
+  listingKind: {
+    sale: string;       // SALE      label
+    rentLong: string;   // RENT_LONG label
+    shortStay: string;  // SHORT_STAY label
+  };
+  pricing: {
+    perNight: string;       // "par nuit"
+    perMonth: string;       // "par mois"
+    fromShort: string;      // "À partir de"
+    forSale: string;        // "À la vente"
+    onRequest: string;      // "Sur demande"
+    inquireCta: string;     // "Demander des informations"
+    inquireShort: string;   // "Demander"
   };
   logo: { tagline: string };
   hero: { subtitle: string };
@@ -49,6 +66,8 @@ type Dict = {
   home: {
     sectionEyebrow: string;
     sectionTitle: string;
+    approachEyebrow: string;       // small caps label above the conversion section
+    approachCta: string;           // bottom CTA: "Confier votre projet"
     bookingSimpleTitle: string;
     bookingSimpleSubtitle: string;
     stepCuratedTitle: string;
@@ -72,6 +91,10 @@ type Dict = {
     villa: string;
     apartment: string;
     riad: string;
+    terrain: string;     // land / building plot
+    bureau: string;      // office, also covers plateau de bureaux
+    magasin: string;     // shop / retail unit
+    commercial: string;  // legacy catch-all for old rows
   };
   card: {
     guests: string;
@@ -107,12 +130,21 @@ type Dict = {
   };
   footer: {
     blurb: string;
+    // "Explorer" column — links to the three catalogue routes plus the
+    // owner-side gestion page, mirroring the global real-estate scope
+    // (Court séjour / Long durée / Achat / Gestion) instead of the old
+    // stay-type breakdown (Riads / Villas / Appartements).
     explore: string;
-    allStays: string;
-    riads: string;
-    villas: string;
-    apartments: string;
+    shortStay: string;
+    rentLong: string;
+    buy: string;
+    gestion: string;
     reach: string;
+    // "Société" column — pointers into the brand-side pages.
+    company: string;
+    about: string;
+    team: string;
+    contact: string;
     rights: string;
     terms: string;
     privacy: string;
@@ -120,6 +152,113 @@ type Dict = {
   };
   language: {
     label: string;
+  };
+  // Home page "choose your lane" portal - three saturated columns right
+  // under the hero. Per-lane copy: title (display headline), body (short
+  // pitch), cta (pill label). Eyebrow comes from `nav.*` so the lane
+  // label stays in sync with the navbar.
+  portal: {
+    ariaLabel: string;
+    shortStayTitle: string;
+    shortStayBody: string;
+    shortStayCta: string;
+    rentLongTitle: string;
+    rentLongBody: string;
+    rentLongCta: string;
+    buyTitle: string;
+    buyBody: string;
+    buyCta: string;
+  };
+  // Dark editorial band on the home page that pivots to owners.
+  ownerCallout: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    cta: string;
+  };
+  // Public team section on /about + small home page sign-off.
+  team: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    whatsapp: string;
+    email: string;
+    phone: string;
+    portraitAlt: string; // "Portrait of {{name}}" — uses {{name}} placeholder
+    signoffSuffix: string;
+  };
+  // "Bientôt disponible" overlay text shown on top of the cream
+  // placeholder image while SALE and RENT_LONG catalogues aren't ready
+  // yet. Three lines: a small tracked eyebrow (brand context), a
+  // display headline, and a one-line caption inviting contact.
+  comingSoon: {
+    eyebrow: string;
+    title: string;
+    caption: string;
+  };
+  // Full /gestion page (hero + benefits + how-it-works + lead form).
+  gestion: {
+    heroEyebrow: string;
+    heroTitle: string;
+    heroBody: string;
+    heroCta: string;
+    serviceEyebrow: string;
+    serviceTitle: string;
+    serviceSubtitle: string;
+    benefit1Title: string;
+    benefit1Body: string;
+    benefit2Title: string;
+    benefit2Body: string;
+    benefit3Title: string;
+    benefit3Body: string;
+    benefit4Title: string;
+    benefit4Body: string;
+    howEyebrow: string;
+    howTitle: string;
+    step1Title: string;
+    step1Body: string;
+    step2Title: string;
+    step2Body: string;
+    step3Title: string;
+    step3Body: string;
+    formEyebrow: string;
+    formTitle: string;
+    formSubtitle: string;
+    formPropertySection: string;
+    formContactSection: string;
+    formTypeLabel: string;
+    formAreaLabel: string;
+    formBedroomsLabel: string;
+    formServiceLabel: string;
+    formListedLabel: string;
+    formListedPlaceholder: string;
+    formNotesLabel: string;
+    formNotesPlaceholder: string;
+    formNameLabel: string;
+    formNamePlaceholder: string;
+    formEmailLabel: string;
+    formEmailPlaceholder: string;
+    formPhoneLabel: string;
+    formPhonePlaceholder: string;
+    formNameRequired: string;
+    formContactRequired: string;
+    formError: string;
+    formNetworkError: string;
+    formSubmit: string;
+    formSubmitting: string;
+    formSuccessTitle: string;
+    formSuccessBody: string;
+    serviceShort: string;
+    serviceLong: string;
+    serviceBoth: string;
+    serviceAdvice: string;
+    typeRiad: string;
+    typeVilla: string;
+    typeApartment: string;
+    typeTerrain: string;
+    typeBureau: string;
+    typeMagasin: string;
+    typeOther: string;
   };
   detail: {
     back: string;
@@ -299,14 +438,31 @@ export const dictionaries: Record<Locale, Dict> = {
     nav: {
       home: "Accueil",
       properties: "Nos propriétés",
+      buy: "Achat",
+      rentLong: "Long durée",
+      shortStay: "Court séjour",
       about: "À propos",
       contact: "Contactez-nous",
-      bookCta: "Réserver",
+      bookCta: "Voir les biens",
       toggleMenu: "Ouvrir le menu",
     },
-    logo: { tagline: "Locations" },
+    listingKind: {
+      sale: "À la vente",
+      rentLong: "Location longue durée",
+      shortStay: "Court séjour",
+    },
+    pricing: {
+      perNight: "par nuit",
+      perMonth: "par mois",
+      fromShort: "À partir de",
+      forSale: "À la vente",
+      onRequest: "Sur demande",
+      inquireCta: "Demander des informations",
+      inquireShort: "Demander",
+    },
+    logo: { tagline: "Immobilier" },
     hero: {
-      subtitle: "Votre location de vacances à Marrakech.",
+      subtitle: "Acheter, louer, séjourner à Marrakech.",
     },
     search: {
       arrival: "Arrivée",
@@ -331,24 +487,26 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
     home: {
-      sectionEyebrow: "Marrakech · Locations d'exception",
-      sectionTitle: "Nos meilleures propriétés",
-      bookingSimpleTitle: "La réservation simplifiée",
+      sectionEyebrow: "Marrakech · Biens d'exception",
+      sectionTitle: "Trouvez votre prochain bien.",
+      approachEyebrow: "Notre approche",
+      approachCta: "Confier votre projet",
+      bookingSimpleTitle: "L'immobilier sans détour",
       bookingSimpleSubtitle:
-        "Trois étapes entre la recherche et les clés en main - et une vraie personne au bout du fil quand vous en avez besoin.",
-      stepCuratedTitle: "Logements sélectionnés",
+        "Un seul interlocuteur, trois métiers : achat, location longue durée, court séjour.",
+      stepCuratedTitle: "Sélection rigoureuse",
       stepCuratedBody:
-        "Chaque propriété est visitée et approuvée avant publication. Aucune surprise à l'arrivée.",
-      stepCancelTitle: "Annulation gratuite",
+        "Chaque bien est visité et approuvé avant publication. Aucune surprise.",
+      stepCancelTitle: "Visites accompagnées",
       stepCancelBody:
-        "Les plans changent. Annulez jusqu'à 7 jours avant l'arrivée sur la plupart des séjours - sans question.",
-      stepConciergeTitle: "Conciergerie locale",
+        "Un conseiller vous fait visiter les biens qui correspondent vraiment à votre projet, pas une liste générique.",
+      stepConciergeTitle: "Suivi personnalisé",
       stepConciergeBody:
-        "Un vrai local sur WhatsApp, du moment de la réservation jusqu'à votre départ.",
-      closerTitle: "Logez-vous au plus près de la ville que vous venez visiter",
+        "Un vrai local sur WhatsApp, de la première visite à la signature, puis longtemps après.",
+      closerTitle: "Marrakech, à chaque étape de votre projet",
       closerBody:
-        "Des riads dans la Médina aux villas avec jardin de la Palmeraie, nos adresses ont un point commun : vous franchissez la porte et vous y êtes déjà. Pas de longues navettes en taxi, pas de bulles touristiques - juste la ville.",
-      closerCta: "Voir toutes les propriétés",
+        "Acheter votre future maison, louer pour une année, ou simplement séjourner quelques nuits : Nextwin reste votre interlocuteur unique. Riads dans la Médina, villas en Palmeraie, appartements à Guéliz, un seul carnet d'adresses.",
+      closerCta: "Voir tous nos biens",
     },
     listings: {
       title: "Propriétés",
@@ -361,6 +519,10 @@ export const dictionaries: Record<Locale, Dict> = {
       villa: "Villa",
       apartment: "Appartement",
       riad: "Riad",
+      terrain: "Terrain",
+      bureau: "Bureau",
+      magasin: "Magasin",
+      commercial: "Commercial",
     },
     card: {
       guests: "invités",
@@ -396,19 +558,136 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     footer: {
       blurb:
-        "Une sélection soignée de logements à Marrakech - riads, villas et appartements choisis pour leur design, leur confort et l'accueil chaleureux de leurs hôtes.",
-      explore: "Explorer",
-      allStays: "Toutes les propriétés",
-      riads: "Riads",
-      villas: "Villas",
-      apartments: "Appartements",
+        "Acheter, louer ou séjourner à Marrakech. Un interlocuteur local pour vos projets immobiliers, du court séjour à l'investissement long terme.",
+      explore: "Nos offres",
+      shortStay: "Court séjour",
+      rentLong: "Long durée",
+      buy: "Achat",
+      gestion: "Gestion locative",
       reach: "Nous joindre",
+      company: "Société",
+      about: "À propos",
+      team: "Notre équipe",
+      contact: "Nous contacter",
       rights: "Tous droits réservés",
       terms: "Conditions",
       privacy: "Confidentialité",
       cookies: "Cookies",
     },
     language: { label: "Langue" },
+    comingSoon: {
+      eyebrow: "NEXTWIN · MARRAKECH",
+      title: "Bientôt disponible",
+      caption: "Cette annonce sera publiée sous peu. Contactez-nous pour un avant-goût exclusif.",
+    },
+    portal: {
+      ariaLabel: "Choisissez votre catégorie",
+      shortStayTitle: "Réservez votre séjour",
+      shortStayBody:
+        "Riads, villas et appartements à la nuit. Sélection rigoureuse, accueil sur mesure.",
+      shortStayCta: "Voir les séjours",
+      rentLongTitle: "Trouvez votre location",
+      rentLongBody:
+        "Meublé ou non meublé, plusieurs mois à Marrakech. Accompagnement de A à Z.",
+      rentLongCta: "Voir les locations",
+      buyTitle: "Achetez votre bien",
+      buyBody:
+        "Villas, riads, appartements et terrains. Conseil neutre et négociation au prix juste.",
+      buyCta: "Explorer le catalogue",
+    },
+    ownerCallout: {
+      eyebrow: "Vous êtes propriétaire",
+      title: "Confiez-nous votre bien.",
+      body:
+        "Mise en ligne, sélection des voyageurs, accueil, ménage et maintenance. Vous gardez la propriété, nous gérons tout le reste.",
+      cta: "En savoir plus",
+    },
+    team: {
+      eyebrow: "Notre équipe",
+      title: "Trois interlocuteurs, un seul standard.",
+      subtitle:
+        "Nous gérons chaque dossier à trois mains. Vous parlez à la personne en charge, pas à un standard.",
+      whatsapp: "WhatsApp",
+      email: "Email",
+      phone: "Appeler",
+      portraitAlt: "Portrait de {{name}}",
+      signoffSuffix: "vos conseillers à Marrakech",
+    },
+    gestion: {
+      heroEyebrow: "Gestion locative",
+      heroTitle: "Confiez-nous votre bien, gardez la tranquillité.",
+      heroBody:
+        "Vous êtes propriétaire à Marrakech. Nous nous occupons de la mise en ligne, de la sélection des voyageurs, de l'accueil, du ménage et de la maintenance. Vous suivez vos revenus, nous gérons le reste.",
+      heroCta: "Confier mon bien",
+      serviceEyebrow: "Notre service",
+      serviceTitle: "Une gestion clé en main.",
+      serviceSubtitle:
+        "Quatre piliers pour transformer un bien à Marrakech en revenu locatif sans effort de votre côté.",
+      benefit1Title: "Mise en ligne premium",
+      benefit1Body:
+        "Photos pro, copy soignée, annonces Airbnb / Booking et réseaux sociaux gérées par notre équipe marketing.",
+      benefit2Title: "Voyageurs sélectionnés",
+      benefit2Body:
+        "Vérification des profils, dépôt de garantie, règles maison. Vous gardez la main sur qui dort chez vous.",
+      benefit3Title: "Accueil et calendrier",
+      benefit3Body:
+        "Check-in personnalisé, support 7j/7 en français, anglais et arabe, calendrier synchronisé sur toutes les plateformes.",
+      benefit4Title: "Ménage et maintenance",
+      benefit4Body:
+        "Équipe de ménage dédiée entre chaque séjour, intervention rapide en cas de problème, linge et consommables fournis.",
+      howEyebrow: "Comment ça marche",
+      howTitle: "Trois étapes, et nous prenons le relai.",
+      step1Title: "Visite & estimation",
+      step1Body:
+        "Nous visitons votre bien, conseillons les ajustements à fort impact et estimons le revenu locatif réaliste.",
+      step2Title: "Contrat & mise en ligne",
+      step2Body:
+        "Signature du mandat, shooting photo, rédaction des annonces et publication sur les plateformes pertinentes.",
+      step3Title: "Gestion quotidienne",
+      step3Body:
+        "Vous recevez un rapport mensuel clair. Nous gérons tout le reste, de la réservation au paiement.",
+      formEyebrow: "Démarrer",
+      formTitle: "Parlons de votre bien.",
+      formSubtitle:
+        "Quelques détails sur votre propriété et nous vous rappelons sous 24h pour une visite estimative gratuite.",
+      formPropertySection: "Votre bien",
+      formContactSection: "Pour vous recontacter",
+      formTypeLabel: "Type de bien",
+      formAreaLabel: "Quartier",
+      formBedroomsLabel: "Chambres (optionnel)",
+      formServiceLabel: "Service souhaité",
+      formListedLabel: "Annonces existantes (Airbnb, Booking…)",
+      formListedPlaceholder: "Lien Airbnb, Booking ou nom de l'annonce (si applicable)",
+      formNotesLabel: "Précisions (optionnel)",
+      formNotesPlaceholder:
+        "Tarif souhaité, disponibilités, contraintes particulières…",
+      formNameLabel: "Nom complet",
+      formNamePlaceholder: "Prénom Nom",
+      formEmailLabel: "Email",
+      formEmailPlaceholder: "vous@exemple.com",
+      formPhoneLabel: "Téléphone",
+      formPhonePlaceholder: "+212 6 …",
+      formNameRequired: "Votre nom est requis.",
+      formContactRequired: "Email ou téléphone requis pour vous recontacter.",
+      formError: "Envoi impossible. Réessayez.",
+      formNetworkError: "Erreur réseau. Réessayez.",
+      formSubmit: "Envoyer ma demande",
+      formSubmitting: "Envoi…",
+      formSuccessTitle: "Merci, votre demande est bien reçue.",
+      formSuccessBody:
+        "Un membre de l'équipe vous rappelle sous 24h pour échanger sur la gestion de votre bien.",
+      serviceShort: "Court séjour (Airbnb, Booking)",
+      serviceLong: "Location longue durée",
+      serviceBoth: "Les deux",
+      serviceAdvice: "Je découvre",
+      typeRiad: "Riad",
+      typeVilla: "Villa",
+      typeApartment: "Appartement",
+      typeTerrain: "Terrain",
+      typeBureau: "Bureau",
+      typeMagasin: "Magasin",
+      typeOther: "Autre",
+    },
     detail: {
       back: "Retour aux propriétés",
       share: "Partager",
@@ -605,14 +884,31 @@ export const dictionaries: Record<Locale, Dict> = {
     nav: {
       home: "Home",
       properties: "Properties",
+      buy: "Buy",
+      rentLong: "Long-term",
+      shortStay: "Short stay",
       about: "About",
       contact: "Contact us",
-      bookCta: "Book a stay",
+      bookCta: "Browse properties",
       toggleMenu: "Toggle menu",
     },
-    logo: { tagline: "Stays" },
+    listingKind: {
+      sale: "For sale",
+      rentLong: "Long-term rental",
+      shortStay: "Short stay",
+    },
+    pricing: {
+      perNight: "per night",
+      perMonth: "per month",
+      fromShort: "From",
+      forSale: "For sale",
+      onRequest: "On request",
+      inquireCta: "Request information",
+      inquireShort: "Inquire",
+    },
+    logo: { tagline: "Real estate" },
     hero: {
-      subtitle: "Your holiday rental in Marrakech.",
+      subtitle: "Buy, rent, stay in Marrakech.",
     },
     search: {
       arrival: "Arrival",
@@ -637,24 +933,26 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     home: {
-      sectionEyebrow: "Marrakech · Curated stays",
-      sectionTitle: "Our best properties",
-      bookingSimpleTitle: "Booking made simple",
+      sectionEyebrow: "Marrakech · Exceptional properties",
+      sectionTitle: "Find your next property.",
+      approachEyebrow: "Our approach",
+      approachCta: "Entrust your project",
+      bookingSimpleTitle: "Real estate, without the runaround",
       bookingSimpleSubtitle:
-        "Three steps from search to keys-in-hand - with a real person on call when you need one.",
-      stepCuratedTitle: "Curated stays",
+        "One contact, three crafts: sales, long-term rentals, short stays.",
+      stepCuratedTitle: "Curated selection",
       stepCuratedBody:
-        "Every property is visited and approved before it goes online. No surprises on arrival.",
-      stepCancelTitle: "Free cancellation",
+        "Every property is visited and approved before it goes online. No surprises.",
+      stepCancelTitle: "Guided viewings",
       stepCancelBody:
-        "Plans change. Cancel up to 7 days before arrival on most stays - no questions asked.",
-      stepConciergeTitle: "Local concierge",
+        "An advisor walks you through the homes that actually match your project, not a generic list.",
+      stepConciergeTitle: "Personal follow-up",
       stepConciergeBody:
-        "A real local on WhatsApp from the moment you book to the day you fly home.",
-      closerTitle: "Stay closer to the city you came for",
+        "A real local on WhatsApp from the first viewing to the signed deed, and long after.",
+      closerTitle: "Marrakech, at every stage of your project",
       closerBody:
-        "From riads inside the Medina to garden villas in the Palmeraie, our places are chosen for the same thing: you walk out the door and you're already there. No long taxi transfers, no resort bubbles - just the city.",
-      closerCta: "Browse all stays",
+        "Buying your next home, renting for a year, or simply staying for a few nights: Nextwin stays your single contact. Riads inside the Medina, garden villas in the Palmeraie, apartments in Guéliz, one address book.",
+      closerCta: "Browse all our properties",
     },
     listings: {
       title: "Properties",
@@ -667,6 +965,10 @@ export const dictionaries: Record<Locale, Dict> = {
       villa: "Villa",
       apartment: "Apartment",
       riad: "Riad",
+      terrain: "Land",
+      bureau: "Office",
+      magasin: "Shop",
+      commercial: "Commercial",
     },
     card: {
       guests: "guests",
@@ -702,19 +1004,136 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     footer: {
       blurb:
-        "A curated selection of stays in Marrakech - riads, villas and apartments chosen for their design, comfort, and the warm welcome of their hosts.",
-      explore: "Browse",
-      allStays: "All properties",
-      riads: "Riads",
-      villas: "Villas",
-      apartments: "Apartments",
+        "Buy, rent or stay in Marrakech. One local team for your real-estate projects, from short stays to long-term investment.",
+      explore: "Our services",
+      shortStay: "Short stay",
+      rentLong: "Long-term",
+      buy: "Buy",
+      gestion: "Property management",
       reach: "Reach us",
+      company: "Company",
+      about: "About",
+      team: "Our team",
+      contact: "Contact us",
       rights: "All rights reserved",
       terms: "Terms",
       privacy: "Privacy",
       cookies: "Cookies",
     },
     language: { label: "Language" },
+    comingSoon: {
+      eyebrow: "NEXTWIN · MARRAKECH",
+      title: "Coming soon",
+      caption: "This listing will be published shortly. Contact us for an exclusive preview.",
+    },
+    portal: {
+      ariaLabel: "Choose your category",
+      shortStayTitle: "Book your stay",
+      shortStayBody:
+        "Riads, villas and apartments by the night. Hand-picked listings, personal welcome.",
+      shortStayCta: "Browse stays",
+      rentLongTitle: "Find your rental",
+      rentLongBody:
+        "Furnished or unfurnished, several months in Marrakech. End-to-end support.",
+      rentLongCta: "Browse rentals",
+      buyTitle: "Buy your property",
+      buyBody:
+        "Villas, riads, apartments and land. Neutral advice and fair-price negotiation.",
+      buyCta: "Browse catalogue",
+    },
+    ownerCallout: {
+      eyebrow: "You are an owner",
+      title: "Hand us your property.",
+      body:
+        "Listing, guest screening, welcome, cleaning and maintenance. You keep the property, we handle the rest.",
+      cta: "Learn more",
+    },
+    team: {
+      eyebrow: "Our team",
+      title: "Three advisors, one standard.",
+      subtitle:
+        "Every file is handled by three pairs of hands. You speak to the person in charge, not a switchboard.",
+      whatsapp: "WhatsApp",
+      email: "Email",
+      phone: "Call",
+      portraitAlt: "Portrait of {{name}}",
+      signoffSuffix: "your advisors in Marrakech",
+    },
+    gestion: {
+      heroEyebrow: "Property management",
+      heroTitle: "Hand us your property, keep your peace of mind.",
+      heroBody:
+        "You own a property in Marrakech. We handle listing, guest screening, welcome, cleaning and maintenance. You track your revenue, we run the rest.",
+      heroCta: "Hand over my property",
+      serviceEyebrow: "Our service",
+      serviceTitle: "A turnkey management.",
+      serviceSubtitle:
+        "Four pillars to turn a Marrakech property into rental income with zero effort from your side.",
+      benefit1Title: "Premium listing",
+      benefit1Body:
+        "Professional photos, polished copy, Airbnb / Booking listings and social media handled by our marketing team.",
+      benefit2Title: "Vetted travellers",
+      benefit2Body:
+        "Profile checks, security deposit, house rules. You stay in control of who sleeps at your place.",
+      benefit3Title: "Welcome & calendar",
+      benefit3Body:
+        "Personal check-in, 7-day support in French, English and Arabic, calendar synced across every platform.",
+      benefit4Title: "Cleaning & maintenance",
+      benefit4Body:
+        "Dedicated cleaning team between stays, fast response on issues, linen and supplies provided.",
+      howEyebrow: "How it works",
+      howTitle: "Three steps, then we take over.",
+      step1Title: "Visit & estimate",
+      step1Body:
+        "We visit your property, advise on high-impact tweaks, and give you a realistic rental income estimate.",
+      step2Title: "Contract & listing",
+      step2Body:
+        "Mandate signing, photo shoot, copy writing and publishing on the right platforms.",
+      step3Title: "Daily management",
+      step3Body:
+        "You get a clear monthly report. We handle everything else, from booking to payment.",
+      formEyebrow: "Get started",
+      formTitle: "Let's talk about your property.",
+      formSubtitle:
+        "A few details about your property and we call you back within 24 hours for a free on-site estimate.",
+      formPropertySection: "Your property",
+      formContactSection: "How to reach you",
+      formTypeLabel: "Property type",
+      formAreaLabel: "Neighbourhood",
+      formBedroomsLabel: "Bedrooms (optional)",
+      formServiceLabel: "Desired service",
+      formListedLabel: "Existing listings (Airbnb, Booking…)",
+      formListedPlaceholder: "Airbnb / Booking link or listing name (if any)",
+      formNotesLabel: "Notes (optional)",
+      formNotesPlaceholder:
+        "Desired rate, availability, special constraints…",
+      formNameLabel: "Full name",
+      formNamePlaceholder: "First Last",
+      formEmailLabel: "Email",
+      formEmailPlaceholder: "you@example.com",
+      formPhoneLabel: "Phone",
+      formPhonePlaceholder: "+212 6 …",
+      formNameRequired: "Your name is required.",
+      formContactRequired: "Email or phone required so we can reach you.",
+      formError: "Could not send. Please try again.",
+      formNetworkError: "Network error. Please try again.",
+      formSubmit: "Send my request",
+      formSubmitting: "Sending…",
+      formSuccessTitle: "Thanks, your request is in.",
+      formSuccessBody:
+        "A team member will call you back within 24 hours to discuss your property.",
+      serviceShort: "Short stay (Airbnb, Booking)",
+      serviceLong: "Long-term rental",
+      serviceBoth: "Both",
+      serviceAdvice: "Just exploring",
+      typeRiad: "Riad",
+      typeVilla: "Villa",
+      typeApartment: "Apartment",
+      typeTerrain: "Land",
+      typeBureau: "Office",
+      typeMagasin: "Shop",
+      typeOther: "Other",
+    },
     detail: {
       back: "Back to all stays",
       share: "Share",
@@ -909,14 +1328,31 @@ export const dictionaries: Record<Locale, Dict> = {
     nav: {
       home: "الرئيسية",
       properties: "عقاراتنا",
+      buy: "للبيع",
+      rentLong: "إيجار طويل",
+      shortStay: "إقامة قصيرة",
       about: "حول",
       contact: "اتصل بنا",
-      bookCta: "احجز",
+      bookCta: "اكتشف العقارات",
       toggleMenu: "فتح القائمة",
     },
-    logo: { tagline: "إقامات" },
+    listingKind: {
+      sale: "للبيع",
+      rentLong: "إيجار طويل الأمد",
+      shortStay: "إقامة قصيرة",
+    },
+    pricing: {
+      perNight: "في الليلة",
+      perMonth: "في الشهر",
+      fromShort: "ابتداءً من",
+      forSale: "للبيع",
+      onRequest: "حسب الطلب",
+      inquireCta: "طلب معلومات",
+      inquireShort: "استفسار",
+    },
+    logo: { tagline: "عقارات" },
     hero: {
-      subtitle: "إيجارك للعطلات في مراكش.",
+      subtitle: "للبيع، للإيجار، وللإقامة في مراكش.",
     },
     search: {
       arrival: "الوصول",
@@ -941,24 +1377,26 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     weekdays: ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"],
     home: {
-      sectionEyebrow: "مراكش · إقامات منتقاة",
-      sectionTitle: "أفضل عقاراتنا",
-      bookingSimpleTitle: "حجز مبسط",
+      sectionEyebrow: "مراكش · عقارات استثنائية",
+      sectionTitle: "اعثر على عقارك التالي.",
+      approachEyebrow: "أسلوبنا",
+      approachCta: "ائتمن مشروعك",
+      bookingSimpleTitle: "عقارات بلا تعقيد",
       bookingSimpleSubtitle:
-        "ثلاث خطوات بين البحث وتسلّم المفاتيح - وشخص حقيقي يجيبك عند الحاجة.",
-      stepCuratedTitle: "إقامات منتقاة",
+        "محاور واحد، ثلاث خدمات : البيع، الإيجار الطويل، الإقامة القصيرة.",
+      stepCuratedTitle: "اختيار دقيق",
       stepCuratedBody:
         "نزور كل عقار ونوافق عليه قبل نشره. لا مفاجآت عند الوصول.",
-      stepCancelTitle: "إلغاء مجاني",
+      stepCancelTitle: "زيارات مرافقة",
       stepCancelBody:
-        "الخطط تتغير. ألغِ حتى ٧ أيام قبل الوصول في معظم الإقامات بدون أسئلة.",
-      stepConciergeTitle: "خدمة محلية",
+        "مستشار يرافقك لزيارة العقارات التي تناسب مشروعك فعلاً، وليس قائمة عامة.",
+      stepConciergeTitle: "متابعة شخصية",
       stepConciergeBody:
-        "محلي حقيقي على واتساب من لحظة الحجز إلى يوم المغادرة.",
-      closerTitle: "أقم في قلب المدينة التي جئت لزيارتها",
+        "محلي حقيقي على واتساب من أول زيارة إلى لحظة التوقيع، وبعدها طويلاً.",
+      closerTitle: "مراكش في كل مراحل مشروعك",
       closerBody:
-        "من رياضات المدينة العتيقة إلى فلل النخيل، عقاراتنا تجمعها فكرة واحدة: تخطو خطوة وتجد نفسك في قلب المدينة. بدون نقل طويل، بدون فقاعات سياحية - فقط المدينة.",
-      closerCta: "تصفح كل العقارات",
+        "سواء كنت ترغب في شراء منزلك الجديد، أو إيجار سنوي، أو إقامة قصيرة، تبقى نكستوين محاورك الوحيد. رياضات في المدينة العتيقة، فلل في النخيل، شقق في قليز : دفتر عناوين واحد.",
+      closerCta: "تصفح كل عقاراتنا",
     },
     listings: {
       title: "العقارات",
@@ -971,6 +1409,10 @@ export const dictionaries: Record<Locale, Dict> = {
       villa: "فيلا",
       apartment: "شقة",
       riad: "رياض",
+      terrain: "أرض",
+      bureau: "مكتب",
+      magasin: "محل",
+      commercial: "تجاري",
     },
     card: {
       guests: "ضيوف",
@@ -1006,19 +1448,136 @@ export const dictionaries: Record<Locale, Dict> = {
     },
     footer: {
       blurb:
-        "تشكيلة منتقاة من الإقامات في مراكش - رياضات وفلل وشقق مختارة لأناقتها وراحتها وحُسن استقبال مستضيفيها.",
-      explore: "استكشف",
-      allStays: "كل العقارات",
-      riads: "الرياضات",
-      villas: "الفلل",
-      apartments: "الشقق",
+        "للشراء، أو الإيجار، أو الإقامة في مراكش. فريق محلي واحد لمشاريعكم العقارية، من الإقامة القصيرة إلى الاستثمار طويل الأمد.",
+      explore: "خدماتنا",
+      shortStay: "إقامة قصيرة",
+      rentLong: "إيجار طويل الأمد",
+      buy: "شراء",
+      gestion: "تسيير العقارات",
       reach: "اتصل بنا",
+      company: "الشركة",
+      about: "من نحن",
+      team: "فريقنا",
+      contact: "تواصل معنا",
       rights: "جميع الحقوق محفوظة",
       terms: "الشروط",
       privacy: "الخصوصية",
       cookies: "ملفات تعريف الارتباط",
     },
     language: { label: "اللغة" },
+    comingSoon: {
+      eyebrow: "نيكستوين · مراكش",
+      title: "قريبًا",
+      caption: "سيُنشر هذا الإعلان قريبًا. تواصل معنا للحصول على معاينة حصرية.",
+    },
+    portal: {
+      ariaLabel: "اختر فئتك",
+      shortStayTitle: "احجز إقامتك",
+      shortStayBody:
+        "رياضات وفلل وشقق بالليلة. اختيار صارم واستقبال خاص.",
+      shortStayCta: "تصفح الإقامات",
+      rentLongTitle: "اعثر على إيجارك",
+      rentLongBody:
+        "مفروش أو غير مفروش، لعدة أشهر في مراكش. مرافقة شاملة من الألف إلى الياء.",
+      rentLongCta: "تصفح الإيجارات",
+      buyTitle: "اشتر عقارك",
+      buyBody:
+        "فلل ورياضات وشقق وأراض. استشارة محايدة وتفاوض بالسعر العادل.",
+      buyCta: "تصفح الكتالوج",
+    },
+    ownerCallout: {
+      eyebrow: "أنت مالك",
+      title: "اعهد إلينا بعقارك.",
+      body:
+        "النشر، اختيار النزلاء، الاستقبال، النظافة والصيانة. تحتفظ بالملكية، ونتولى الباقي.",
+      cta: "اكتشف المزيد",
+    },
+    team: {
+      eyebrow: "فريقنا",
+      title: "ثلاثة محاورين، معيار واحد.",
+      subtitle:
+        "نتعامل مع كل ملف بأيدٍ ثلاثة. تتحدث مع الشخص المكلف، لا مع مركز اتصال.",
+      whatsapp: "واتساب",
+      email: "البريد الإلكتروني",
+      phone: "اتصل",
+      portraitAlt: "صورة {{name}}",
+      signoffSuffix: "مستشاروكم في مراكش",
+    },
+    gestion: {
+      heroEyebrow: "تسيير العقارات",
+      heroTitle: "اعهد إلينا بعقارك، واحتفظ براحة بالك.",
+      heroBody:
+        "أنت مالك عقار في مراكش. نتولى النشر واختيار النزلاء والاستقبال والنظافة والصيانة. أنت تتابع مداخيلك، ونحن نسير الباقي.",
+      heroCta: "اعهد بعقاري",
+      serviceEyebrow: "خدمتنا",
+      serviceTitle: "تسيير شامل بمفتاح اليد.",
+      serviceSubtitle:
+        "أربعة محاور لتحويل عقار في مراكش إلى دخل إيجاري دون أي مجهود من طرفك.",
+      benefit1Title: "نشر متميز",
+      benefit1Body:
+        "صور احترافية، نصوص أنيقة، إعلانات Airbnb وBooking ومنصات التواصل يديرها فريقنا التسويقي.",
+      benefit2Title: "نزلاء مختارون",
+      benefit2Body:
+        "التحقق من الملفات، تأمين الضمان، قواعد المنزل. تبقى مسيطرًا على من ينام عندك.",
+      benefit3Title: "الاستقبال والتقويم",
+      benefit3Body:
+        "تسجيل دخول شخصي، دعم على مدار الأسبوع بالفرنسية والإنجليزية والعربية، تقويم متزامن على كل المنصات.",
+      benefit4Title: "النظافة والصيانة",
+      benefit4Body:
+        "فريق نظافة مخصص بين كل إقامة، تدخل سريع عند أي مشكلة، توفير المفروشات والمستلزمات.",
+      howEyebrow: "كيف يجري الأمر",
+      howTitle: "ثلاث مراحل ثم نتولى الأمر.",
+      step1Title: "الزيارة والتقدير",
+      step1Body:
+        "نزور عقارك، ننصح بالتحسينات ذات الأثر العالي، ونقدم تقديرًا واقعيًا للدخل الإيجاري.",
+      step2Title: "العقد والنشر",
+      step2Body:
+        "توقيع التفويض، تصوير احترافي، كتابة الإعلانات ونشرها على المنصات المناسبة.",
+      step3Title: "التسيير اليومي",
+      step3Body:
+        "تتوصل بتقرير شهري واضح. نحن نتولى الباقي، من الحجز حتى الدفع.",
+      formEyebrow: "ابدأ الآن",
+      formTitle: "لنتحدث عن عقارك.",
+      formSubtitle:
+        "بعض التفاصيل عن عقارك وسنتصل بك خلال 24 ساعة لزيارة تقديرية مجانية.",
+      formPropertySection: "عقارك",
+      formContactSection: "للتواصل معك",
+      formTypeLabel: "نوع العقار",
+      formAreaLabel: "الحي",
+      formBedroomsLabel: "الغرف (اختياري)",
+      formServiceLabel: "الخدمة المطلوبة",
+      formListedLabel: "الإعلانات الحالية (Airbnb، Booking…)",
+      formListedPlaceholder: "رابط Airbnb أو Booking أو اسم الإعلان (إن وجد)",
+      formNotesLabel: "ملاحظات (اختياري)",
+      formNotesPlaceholder:
+        "السعر المرغوب، التواريخ المتاحة، شروط خاصة…",
+      formNameLabel: "الاسم الكامل",
+      formNamePlaceholder: "الاسم العائلي",
+      formEmailLabel: "البريد الإلكتروني",
+      formEmailPlaceholder: "you@example.com",
+      formPhoneLabel: "الهاتف",
+      formPhonePlaceholder: "+212 6 …",
+      formNameRequired: "الاسم مطلوب.",
+      formContactRequired: "البريد الإلكتروني أو الهاتف مطلوب للتواصل معك.",
+      formError: "تعذر الإرسال. حاول مرة أخرى.",
+      formNetworkError: "خطأ في الشبكة. حاول مرة أخرى.",
+      formSubmit: "إرسال الطلب",
+      formSubmitting: "جارٍ الإرسال…",
+      formSuccessTitle: "شكرًا، تم استلام طلبك.",
+      formSuccessBody:
+        "سيتصل بك أحد أعضاء الفريق خلال 24 ساعة لمناقشة تسيير عقارك.",
+      serviceShort: "إقامة قصيرة (Airbnb، Booking)",
+      serviceLong: "إيجار طويل الأمد",
+      serviceBoth: "كلاهما",
+      serviceAdvice: "أستكشف",
+      typeRiad: "رياض",
+      typeVilla: "فيلا",
+      typeApartment: "شقة",
+      typeTerrain: "أرض",
+      typeBureau: "مكتب",
+      typeMagasin: "محل",
+      typeOther: "آخر",
+    },
     detail: {
       back: "العودة إلى العقارات",
       share: "مشاركة",

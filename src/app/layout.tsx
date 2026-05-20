@@ -25,29 +25,31 @@ const display = Inter({
 });
 
 const HOME_TITLE =
-  "NEXTWIN STAY — Locations à Marrakech : riads, villas et appartements de luxe";
+  "NEXTWIN · Immobilier de prestige à Marrakech : achat, location, court séjour";
 const HOME_DESCRIPTION =
-  "Réservez des riads, villas et appartements de luxe à Marrakech. Sélection NEXTWIN STAY, confirmation instantanée, conciergerie locale 7j/7.";
+  "Acheter, louer ou séjourner à Marrakech. Sélection rigoureuse de riads, villas et appartements d'exception, accompagnée par un conseiller local.";
 
 export const metadata: Metadata = {
   // metadataBase fixes relative og:image URLs and canonical resolution.
   metadataBase: new URL(SITE_URL),
   title: {
     default: HOME_TITLE,
-    template: "%s · NEXTWIN STAY",
+    template: "%s · NEXTWIN",
   },
   description: HOME_DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
-    "location Marrakech",
+    "immobilier Marrakech",
+    "acheter Marrakech",
+    "louer Marrakech",
+    "court séjour Marrakech",
     "riad Marrakech",
     "villa Marrakech",
     "appartement Marrakech",
-    "location vacances Marrakech",
     "Gueliz",
     "Médina",
     "Palmeraie",
-    "NEXTWIN STAY",
+    "NEXTWIN",
   ],
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   alternates: {
@@ -67,7 +69,7 @@ export const metadata: Metadata = {
         url: "/og-default.jpg",
         width: 1200,
         height: 630,
-        alt: "Locations de luxe à Marrakech — NEXTWIN STAY",
+        alt: "Immobilier de prestige à Marrakech, NEXTWIN",
       },
     ],
   },

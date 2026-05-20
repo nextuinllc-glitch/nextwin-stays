@@ -16,10 +16,14 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
 
   const NAV = [
-    { label: t.nav.home, href: "/" },
-    { label: t.nav.properties, href: "/properties" },
-    { label: t.nav.about, href: "/about" },
-    { label: t.nav.contact, href: "/contact" },
+    { label: t.nav.home,      href: "/" },
+    // Order intentional: Court séjour first (most populated catalogue),
+    // then Long durée, then Acheter. Mirrors the priority on the home page.
+    { label: t.nav.shortStay, href: "/properties" },
+    { label: t.nav.rentLong,  href: "/louer" },
+    { label: t.nav.buy,       href: "/acheter" },
+    { label: t.nav.about,     href: "/about" },
+    { label: t.nav.contact,   href: "/contact" },
   ];
 
   useEffect(() => {

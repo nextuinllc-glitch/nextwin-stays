@@ -9,9 +9,11 @@ import { getPublishedProperties, getPropertyTypeCounts } from "@/lib/property-re
 // pre-rendered once and serves every variant of the URL from the same
 // HTML — required for `output: 'export'` on GitHub Pages.
 export default async function PropertiesPage() {
+  // /properties now serves the SHORT_STAY (court séjour) catalog only.
+  // SALE -> /acheter, RENT_LONG -> /louer.
   const [list, counts] = await Promise.all([
-    getPublishedProperties(),
-    getPropertyTypeCounts(),
+    getPublishedProperties({ listingKind: "SHORT_STAY" }),
+    getPropertyTypeCounts({ listingKind: "SHORT_STAY" }),
   ]);
 
   return (

@@ -3,11 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { Star, ChevronLeft, ChevronRight, Users, Bed, Bath } from "lucide-react";
-import type { Property, PropertyType } from "@/lib/properties";
-import { PROPERTY_TYPE_BADGE_CLASS } from "@/lib/properties";
-import { cn, formatPrice } from "@/lib/utils";
+import { Star, ChevronLeft, ChevronRight, Users, Bed, Bath, Maximize, Layers } from "lucide-react";
+import type { Property } from "@/lib/properties";
+import { cn, formatPrice, formatPriceShort } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nProvider";
+import { ComingSoonOverlay } from "@/components/ComingSoonOverlay";
 
 type Props = {
   property: Property;
@@ -58,12 +58,6 @@ function pickTopAmenityKeys(amenities: string[], max = 3) {
   }
   return out;
 }
-
-const TYPE_KEY: Record<PropertyType, "villa" | "apartment" | "riad"> = {
-  villa: "villa",
-  apartment: "apartment",
-  riad: "riad",
-};
 
 export function PropertyCard({ property, priority = false }: Props) {
   const { t, locale } = useI18n();
@@ -203,6 +197,16 @@ export function PropertyCard({ property, priority = false }: Props) {
             </div>
           ))}
 
+          {/* Locale-aware "Bientôt disponible" overlay - sits on top of
+              the cream placeholder image whenever this card represents a
+              SALE or RENT_LONG listing during the pre-launch window. The
+              property-repo swaps the images to /coming-soon.svg there;
+              this overlay layers the brand eyebrow + headline in the
+              active locale (FR / EN / AR) on top. */}
+          {(property.listingKind ?? "SHORT_STAY") !== "SHORT_STAY" && (
+            <ComingSoonOverlay size="card" />
+          )}
+
           {/* Glare layer — follows the cursor */}
           <div
             ref={glareRef}
@@ -210,25 +214,37 @@ export function PropertyCard({ property, priority = false }: Props) {
             style={{ transform: "translateZ(1px)" }}
           />
 
-          {/* Type badge — top-left, color-coded — lifts in Z */}
+          {/* Listing-kind badge - top-left. Tells the visitor at a glance
+              whether the card is a Court séjour stay, a Long durée rental,
+              or an Acheter sale - which is what they're shopping by, not
+              the underlying property type (Villa / Riad / Appartement).
+              The property type still appears further down on the detail
+              page and in the filter pills. */}
           <span
-            className={cn(
-              "pointer-events-none absolute left-3 top-3 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide shadow-md",
-              PROPERTY_TYPE_BADGE_CLASS[property.type],
-            )}
+            className="pointer-events-none absolute left-3 top-3 inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold tracking-wide text-white shadow-md"
             style={{ transform: "translateZ(40px)" }}
           >
-            {t.type[TYPE_KEY[property.type]]}
+            {(() => {
+              const kind = property.listingKind ?? "SHORT_STAY";
+              if (kind === "SALE") return t.nav.buy;
+              if (kind === "RENT_LONG") return t.nav.rentLong;
+              return t.nav.shortStay;
+            })()}
           </span>
 
-          {/* Rating badge — top-right, emerald-green pill — lifts in Z */}
-          <span
-            className="pointer-events-none absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-600/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-md backdrop-blur"
-            style={{ transform: "translateZ(40px)" }}
-          >
-            {property.rating.toFixed(2)}
-            <Star className="h-3 w-3 fill-white text-white" />
-          </span>
+          {/* Rating badge - SHORT_STAY only. Star ratings are an Airbnb-
+              style guest-review signal; they don't apply to a sale or a
+              long-term lease, where the conseiller + listing details are
+              what convince the buyer/tenant. */}
+          {(property.listingKind ?? "SHORT_STAY") === "SHORT_STAY" && (
+            <span
+              className="pointer-events-none absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-600/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-md backdrop-blur"
+              style={{ transform: "translateZ(40px)" }}
+            >
+              {property.rating.toFixed(2)}
+              <Star className="h-3 w-3 fill-white text-white" />
+            </span>
+          )}
 
           {/* Carousel arrows — both sides, fade in on desktop hover.
               Hidden by default on touch devices (the swipe gesture is
@@ -279,21 +295,78 @@ export function PropertyCard({ property, priority = false }: Props) {
             {title}
           </h3>
 
+          {/* Capacity row adapts to listingKind + type:
+              SHORT_STAY        -> guests + bedrooms + baths (existing)
+              SALE / RENT_LONG  -> surface + bedrooms + baths (or floor for office/shop)
+              Terrain           -> surface only (no rooms / no baths) */}
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-ink-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" />
-              {property.guests} {t.card.guests}
-            </span>
-            <span className="text-ink-soft">·</span>
-            <span className="inline-flex items-center gap-1.5">
-              <Bed className="h-3.5 w-3.5" />
-              {property.bedrooms} {t.card.bedrooms}
-            </span>
-            <span className="text-ink-soft">·</span>
-            <span className="inline-flex items-center gap-1.5">
-              <Bath className="h-3.5 w-3.5" />
-              {property.bathrooms} {t.card.bathrooms}
-            </span>
+            {(() => {
+              const isStay = (property.listingKind ?? "SHORT_STAY") === "SHORT_STAY";
+              const isTerrain = property.type === "terrain";
+              const isCommercial = property.type === "bureau" || property.type === "magasin";
+
+              const items: React.ReactNode[] = [];
+
+              // Surface: hero metric for real-estate listings.
+              if (!isStay && property.surfaceM2) {
+                items.push(
+                  <span key="surface" className="inline-flex items-center gap-1.5">
+                    <Maximize className="h-3.5 w-3.5" />
+                    {property.surfaceM2} m²
+                  </span>,
+                );
+              }
+              // Land surface for terrain (canonical) - use it if surfaceM2 missing.
+              if (isTerrain && property.landSurfaceM2 && !property.surfaceM2) {
+                items.push(
+                  <span key="land" className="inline-flex items-center gap-1.5">
+                    <Maximize className="h-3.5 w-3.5" />
+                    {property.landSurfaceM2.toLocaleString("fr-FR")} m²
+                  </span>,
+                );
+              }
+              // Guests: only for SHORT_STAY (booking capacity).
+              if (isStay) {
+                items.push(
+                  <span key="guests" className="inline-flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" />
+                    {property.guests} {t.card.guests}
+                  </span>,
+                );
+              }
+              // Bedrooms: residential types only.
+              if (!isTerrain && !isCommercial && property.bedrooms > 0) {
+                items.push(
+                  <span key="bd" className="inline-flex items-center gap-1.5">
+                    <Bed className="h-3.5 w-3.5" />
+                    {property.bedrooms} {t.card.bedrooms}
+                  </span>,
+                );
+              }
+              // Bathrooms: residential + commercial.
+              if (!isTerrain && property.bathrooms > 0) {
+                items.push(
+                  <span key="ba" className="inline-flex items-center gap-1.5">
+                    <Bath className="h-3.5 w-3.5" />
+                    {property.bathrooms} {t.card.bathrooms}
+                  </span>,
+                );
+              }
+              // Étage: bureau / magasin / apartment (when set).
+              if ((isCommercial || property.type === "apartment") && property.floor != null) {
+                items.push(
+                  <span key="floor" className="inline-flex items-center gap-1.5">
+                    <Layers className="h-3.5 w-3.5" />
+                    {property.floor === 0 ? "RdC" : `${property.floor}e ét.`}
+                  </span>,
+                );
+              }
+
+              // Render with mid-dot separators
+              return items.flatMap((node, i) =>
+                i === 0 ? [node] : [<span key={`sep-${i}`} className="text-ink-soft">·</span>, node],
+              );
+            })()}
           </div>
 
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -307,14 +380,43 @@ export function PropertyCard({ property, priority = false }: Props) {
             ))}
           </div>
 
-          {/* Price line — bold currency-formatted amount + small muted
-              "per night" suffix. Sits on its own row below the amenity
-              chips as the closing statement of every card. */}
+          {/* Price line - adapts to the listing kind:
+              SHORT_STAY -> nightly rate + "par nuit"
+              RENT_LONG  -> monthly rent + "par mois"
+              SALE       -> total sale price (compact for big MAD figures) */}
           <div className="mt-3 flex items-baseline gap-1.5">
-            <span className="text-base font-semibold text-ink">
-              {formatPrice(property.pricePerNight, property.currency as "EUR" | "USD")}
-            </span>
-            <span className="text-sm text-ink-muted">{t.booking.perNight}</span>
+            {(() => {
+              const kind = property.listingKind ?? "SHORT_STAY";
+              const currency = (property.currency ?? "EUR") as "EUR" | "USD" | "MAD";
+              if (kind === "SALE" && property.salePrice) {
+                return (
+                  <>
+                    <span className="text-base font-semibold text-ink">
+                      {formatPriceShort(property.salePrice, currency)}
+                    </span>
+                    <span className="text-sm text-ink-muted">{t.pricing.forSale}</span>
+                  </>
+                );
+              }
+              if (kind === "RENT_LONG" && property.monthlyRent) {
+                return (
+                  <>
+                    <span className="text-base font-semibold text-ink">
+                      {formatPrice(property.monthlyRent, currency)}
+                    </span>
+                    <span className="text-sm text-ink-muted">{t.pricing.perMonth}</span>
+                  </>
+                );
+              }
+              return (
+                <>
+                  <span className="text-base font-semibold text-ink">
+                    {formatPrice(property.pricePerNight, currency)}
+                  </span>
+                  <span className="text-sm text-ink-muted">{t.pricing.perNight}</span>
+                </>
+              );
+            })()}
           </div>
         </div>
       </Link>

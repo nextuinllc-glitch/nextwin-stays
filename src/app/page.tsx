@@ -1,6 +1,6 @@
 import { HomeContent } from "@/components/HomeContent";
 import { getPublishedProperties } from "@/lib/property-repo";
-import { getHeroSettings } from "@/lib/settings-repo";
+import { getHeroSettings, getHomeFeaturedSlugs } from "@/lib/settings-repo";
 import { getPageContent } from "@/lib/page-content-repo";
 
 function inferVideoMime(url: string) {
@@ -10,13 +10,34 @@ function inferVideoMime(url: string) {
 }
 
 export default async function HomePage() {
-  // Fetch in parallel — the hero + page content rows are tiny so this
-  // adds no waterfall.
-  const [featured, hero, pageContent] = await Promise.all([
-    getPublishedProperties(),
+  // Featured strip on the home page is one property per listing kind
+  // (Acheter, Louer, Court séjour) - a single editorial sample so the
+  // visitor sees the breadth at a glance, then taps a category pill to
+  // browse the full catalogue. Fetched in parallel.
+  const [saleList, rentList, stayList, hero, pageContent, featuredSlugs] = await Promise.all([
+    getPublishedProperties({ listingKind: "SALE" }),
+    getPublishedProperties({ listingKind: "RENT_LONG" }),
+    getPublishedProperties({ listingKind: "SHORT_STAY" }),
     getHeroSettings(),
     getPageContent("home"),
+    getHomeFeaturedSlugs(),
   ]);
+  // Admin-picked slug → fall back to per-kind default. Louer keeps its
+  // Appartement preference (typical long-term-rental product); SALE +
+  // SHORT_STAY fall back to the catalogue's natural ordering.
+  const pick = (list: typeof saleList, slug: string | null, fallback = list[0]) =>
+    (slug ? list.find((p) => p.slug === slug) : null) ?? fallback;
+  const saleFeatured = pick(saleList, featuredSlugs.sale);
+  const rentFeatured = pick(
+    rentList,
+    featuredSlugs.rentLong,
+    rentList.find((p) => p.type === "apartment") ?? rentList[0],
+  );
+  const stayFeatured = pick(stayList, featuredSlugs.shortStay);
+  // Order matches the pills above: Court séjour, Long durée, Acheter. .filter
+  // drops any kind that has zero properties so we never render an empty
+  // card slot.
+  const featured = [stayFeatured, rentFeatured, saleFeatured].filter(Boolean);
   return (
     <>
       {/* Preload the hero poster JPEGs first — these are tiny (≤300KB)
@@ -64,7 +85,7 @@ export default async function HomePage() {
         />
       )}
       <HomeContent
-        featured={featured.slice(0, 6)}
+        featured={featured}
         hero={hero}
         pageContent={pageContent}
       />
