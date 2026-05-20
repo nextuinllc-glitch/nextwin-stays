@@ -3,12 +3,6 @@ import { getPublishedProperties } from "@/lib/property-repo";
 import { getHeroSettings, getHomeFeaturedSlugs } from "@/lib/settings-repo";
 import { getPageContent } from "@/lib/page-content-repo";
 
-function inferVideoMime(url: string) {
-  return url.split("?")[0].toLowerCase().endsWith(".webm")
-    ? "video/webm"
-    : "video/mp4";
-}
-
 export default async function HomePage() {
   // Featured strip on the home page is one property per listing kind
   // (Acheter, Louer, Court séjour) - a single editorial sample so the
@@ -62,28 +56,11 @@ export default async function HomePage() {
           media="(max-width: 767.98px)"
         />
       )}
-      {/* Preload the video bytes in parallel so they're decode-ready by
-          the time the <video> element mounts — without this hint the
-          browser only starts fetching after the JS bundle hydrates,
-          which costs ~500ms on a cold load. */}
-      {hero.videoDesktop && (
-        <link
-          rel="preload"
-          as="video"
-          href={hero.videoDesktop}
-          type={inferVideoMime(hero.videoDesktop)}
-          media="(min-width: 768px)"
-        />
-      )}
-      {hero.videoMobile && (
-        <link
-          rel="preload"
-          as="video"
-          href={hero.videoMobile}
-          type={inferVideoMime(hero.videoMobile)}
-          media="(max-width: 767.98px)"
-        />
-      )}
+      {/* Video preload hints removed: they were eating mobile bandwidth
+          before FCP and hurting Lighthouse's Speed Index. The poster
+          paints instantly (preload above), the <video> tag downloads
+          its source after hydration which is fine for an autoplay
+          background loop. */}
       <HomeContent
         featured={featured}
         hero={hero}

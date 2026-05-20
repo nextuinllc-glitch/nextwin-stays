@@ -2,7 +2,7 @@
 
 import { Hero } from "@/components/Hero";
 import { HomePortal } from "@/components/HomePortal";
-import { OfficeMap } from "@/components/OfficeMap";
+import { OfficeMapLazy } from "@/components/OfficeMapLazy";
 import { OwnerCallout } from "@/components/OwnerCallout";
 import type { Property } from "@/lib/properties";
 import type { HeroSettings } from "@/lib/settings-repo";
@@ -43,9 +43,11 @@ export function HomeContent({ hero }: Props) {
       <OwnerCallout />
 
       {/* Office map - editorial location strip with the agency address
-          + a Leaflet pin on Marrakech. Tapping the map opens Google
-          Maps with driving directions. Closing chapter of the page. */}
-      <OfficeMap />
+          + a Leaflet pin on Marrakech. Lazy-mounted via IntersectionObserver
+          so Leaflet's JS only loads when the visitor scrolls within 600px
+          of the section. Keeps the home page's initial bundle lean and
+          cuts Lighthouse Total-Blocking-Time. */}
+      <OfficeMapLazy />
     </>
   );
 }

@@ -193,6 +193,8 @@ export function PropertyCard({ property, priority = false }: Props) {
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 priority={priority && i === 0}
+                loading={priority && i === 0 ? "eager" : "lazy"}
+                decoding="async"
                 className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
               />
             </div>
