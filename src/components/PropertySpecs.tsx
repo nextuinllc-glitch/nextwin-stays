@@ -26,10 +26,15 @@ type Props = {
  * so each category surfaces exactly the fields a Moroccan buyer/renter
  * expects to see at a glance (modelled on Avito + Mubawab conventions).
  *
- * Renders nothing when no structured fields are filled, so existing
- * SHORT_STAY listings (which have none of these) stay unchanged.
+ * SHORT_STAY listings already surface capacity (guests + bedrooms +
+ * bathrooms) in the title meta row and rely on the booking calendar,
+ * not on real-estate facts. The Caractéristiques block is only useful
+ * for SALE + RENT_LONG, so we early-return for short-stay listings.
  */
 export function PropertySpecs({ property }: Props) {
+  const kind = property.listingKind ?? "SHORT_STAY";
+  if (kind === "SHORT_STAY") return null;
+
   // Each spec is a label + value + optional icon. The order is editorial,
   // not alphabetical: most-glanced facts first.
   const specs: Array<{ icon: React.ReactNode; label: string; value: string | number }> = [];

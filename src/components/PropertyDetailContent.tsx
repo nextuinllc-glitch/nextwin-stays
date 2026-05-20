@@ -275,12 +275,17 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
           )}
 
           {/* Caractéristiques - structured per-type facts grid (surface,
-              étage, année, état, parking, titre foncier, etc.). Renders
-              nothing when no structured fields are set, so SHORT_STAY
-              listings stay unchanged. */}
-          <div className="border-b border-cream-300 pb-12">
-            <PropertySpecs property={property} />
-          </div>
+              étage, année, état, parking, titre foncier, etc.). Only
+              shown for SALE + RENT_LONG; SHORT_STAY listings already
+              surface capacity in the title meta row. PropertySpecs
+              returns null for SHORT_STAY, and we gate the wrapping
+              border here too so the page doesn't render an empty
+              bordered shell. */}
+          {(property.listingKind ?? "SHORT_STAY") !== "SHORT_STAY" && (
+            <div className="border-b border-cream-300 pb-12">
+              <PropertySpecs property={property} />
+            </div>
+          )}
 
           {/* Agréments */}
           <div className="border-b border-cream-300 pb-12">
