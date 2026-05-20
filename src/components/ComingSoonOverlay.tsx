@@ -24,6 +24,8 @@ export function ComingSoonOverlay({ size = "card" }: Props) {
   const { t } = useI18n();
   const isGallery = size === "gallery";
 
+  // Placeholder SVG is now slate/ink, so the overlay text uses warm
+  // white. The eyebrow stays brand-pink for the editorial cue.
   return (
     <div
       aria-label={t.comingSoon.title}
@@ -31,7 +33,7 @@ export function ComingSoonOverlay({ size = "card" }: Props) {
     >
       <div className="px-6 text-center">
         <span
-          className={`block font-semibold uppercase text-brand-600 ${
+          className={`block font-semibold uppercase text-brand-400 ${
             isGallery
               ? "text-[12px] tracking-[0.42em]"
               : "text-[9px] tracking-[0.32em] sm:text-[10px] sm:tracking-[0.36em]"
@@ -40,14 +42,14 @@ export function ComingSoonOverlay({ size = "card" }: Props) {
           {t.comingSoon.eyebrow}
         </span>
         <h3
-          className={`mt-3 font-display italic font-medium text-ink [text-wrap:balance] ${
+          className={`mt-3 font-display italic font-medium text-white [text-wrap:balance] ${
             isGallery ? "text-5xl sm:text-7xl" : "text-2xl sm:text-3xl"
           }`}
         >
           {t.comingSoon.title}
         </h3>
         {isGallery && (
-          <p className="mx-auto mt-5 max-w-md text-sm text-ink-muted sm:text-base">
+          <p className="mx-auto mt-5 max-w-md text-sm text-white/70 sm:text-base">
             {t.comingSoon.caption}
           </p>
         )}

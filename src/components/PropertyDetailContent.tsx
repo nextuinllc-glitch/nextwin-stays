@@ -158,6 +158,7 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
         <Gallery
           images={property.images}
           comingSoon={(property.listingKind ?? "SHORT_STAY") !== "SHORT_STAY"}
+          watermark={(property.listingKind ?? "SHORT_STAY") === "SHORT_STAY"}
         />
       </div>
 

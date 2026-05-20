@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
   getPropertyBySlug,
-  getAllPropertySlugs,
   getPropertyBlockedRanges,
 } from "@/lib/property-repo";
 import { getFeeSettings, getContactSettings } from "@/lib/settings-repo";
@@ -15,10 +14,16 @@ import {
   propertyJsonLd,
 } from "@/lib/seo";
 
-export async function generateStaticParams() {
-  const slugs = await getAllPropertySlugs();
-  return slugs.map((slug) => ({ slug }));
-}
+// Property detail is rendered on demand + cached at the edge for 1 hour.
+// We used to statically generate every slug at build time, but with
+// Supabase's pgbouncer connection_limit=1 (recommended for serverless),
+// parallel prerender of ~30 detail pages exhausts the pool. ISR
+// (revalidate + dynamicParams) gives us the best of both: cold pages
+// are server-rendered the first time a visitor hits them, then served
+// from the edge cache for the next hour. Admin edits show up on the
+// next refresh after revalidate elapses.
+export const revalidate = 3600;
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,

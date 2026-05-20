@@ -8,6 +8,7 @@ import type { Property } from "@/lib/properties";
 import { cn, formatPrice, formatPriceShort } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nProvider";
 import { ComingSoonOverlay } from "@/components/ComingSoonOverlay";
+import { NextwinWatermark } from "@/components/NextwinWatermark";
 
 type Props = {
   property: Property;
@@ -205,6 +206,14 @@ export function PropertyCard({ property, priority = false }: Props) {
               active locale (FR / EN / AR) on top. */}
           {(property.listingKind ?? "SHORT_STAY") !== "SHORT_STAY" && (
             <ComingSoonOverlay size="card" />
+          )}
+
+          {/* SHORT_STAY photos carry a subtle NEXTWIN watermark so that
+              when somebody grabs the image (right-click save, scraper,
+              Airbnb mirror), the brand still ships with it. Discrete
+              bottom-right wordmark on cards. */}
+          {(property.listingKind ?? "SHORT_STAY") === "SHORT_STAY" && (
+            <NextwinWatermark size="card" />
           )}
 
           {/* Glare layer — follows the cursor */}

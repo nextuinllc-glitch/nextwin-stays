@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1140" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
   <defs>
+    <!-- Mid-tone slate gradient — gives the placeholder more weight than
+         the cream version, reads as "premium reserved" instead of
+         "blank cream". Top is a near-black ink, bottom is a graphite. -->
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#F8F4EC"/>
-      <stop offset="100%" stop-color="#EDE7DA"/>
+      <stop offset="0%"  stop-color="#1F1B24"/>
+      <stop offset="55%" stop-color="#2A2632"/>
+      <stop offset="100%" stop-color="#1A1620"/>
     </linearGradient>
+
+    <!-- Soft radial vignette that lifts the centre and dims the corners
+         so the white overlay text reads cleanly on top. -->
+    <radialGradient id="vignette" cx="50%" cy="46%" r="65%">
+      <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="60%" stop-color="#FFFFFF" stop-opacity="0.0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.25"/>
+    </radialGradient>
   </defs>
 
-  <!-- Cream background with a delicate vertical wash -->
+  <!-- Slate background + vignette wash -->
   <rect width="1200" height="1140" fill="url(#bg)"/>
+  <rect width="1200" height="1140" fill="url(#vignette)"/>
 
-  <!-- Outer editorial frame - thin double hairline -->
-  <rect x="60" y="60" width="1080" height="1020" fill="none" stroke="#222" stroke-opacity="0.08" stroke-width="2"/>
-  <rect x="78" y="78" width="1044" height="984" fill="none" stroke="#E00B41" stroke-opacity="0.25" stroke-width="1"/>
+  <!-- Outer editorial frame - thin double hairline in warm white -->
+  <rect x="60"  y="60"  width="1080" height="1020" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="2"/>
+  <rect x="78"  y="78"  width="1044" height="984"  fill="none" stroke="#E00B41" stroke-opacity="0.35" stroke-width="1"/>
 
-  <!-- Centre ornament - vertical brand hairline (text is layered on top
-       by the consuming card / gallery so the message is locale-aware) -->
-  <line x1="600" y1="490" x2="600" y2="650" stroke="#E00B41" stroke-opacity="0.45" stroke-width="1.5"/>
+  <!-- Centre ornament - vertical brand hairline. Text is layered on top
+       by the consuming card / gallery so the message is locale-aware. -->
+  <line x1="600" y1="490" x2="600" y2="650" stroke="#E00B41" stroke-opacity="0.65" stroke-width="1.5"/>
 </svg>

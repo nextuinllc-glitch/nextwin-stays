@@ -1,13 +1,14 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CheckoutForm } from "@/components/CheckoutForm";
-import { getPropertyBySlug, getAllPropertySlugs } from "@/lib/property-repo";
+import { getPropertyBySlug } from "@/lib/property-repo";
 import { getFeeSettings, getContactSettings } from "@/lib/settings-repo";
 
-export async function generateStaticParams() {
-  const slugs = await getAllPropertySlugs();
-  return slugs.map((slug) => ({ slug }));
-}
+// Same ISR strategy as /properties/[slug]: rendered on demand the first
+// time a visitor opens the reserve page, cached at the edge for one
+// hour. Avoids slamming Supabase's pgbouncer pool at build time.
+export const revalidate = 3600;
+export const dynamicParams = true;
 
 export const metadata = {
   title: "Confirmer la réservation",

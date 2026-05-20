@@ -6,6 +6,7 @@ import { X, ChevronLeft, ChevronRight, Grid2x2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nProvider";
 import { ComingSoonOverlay } from "@/components/ComingSoonOverlay";
+import { NextwinWatermark } from "@/components/NextwinWatermark";
 
 type Img = { src: string; alt: string };
 
@@ -15,9 +16,13 @@ type Props = {
   // on top of every visible image tile (hero + grid). Used by the SALE
   // and RENT_LONG detail pages while their inventory isn't ready yet.
   comingSoon?: boolean;
+  // When true, a subtle NEXTWIN watermark is layered on the visible
+  // tiles. Used on SHORT_STAY listings to discourage straight reuse
+  // of the real listing photos on competitor sites.
+  watermark?: boolean;
 };
 
-export function Gallery({ images, comingSoon = false }: Props) {
+export function Gallery({ images, comingSoon = false, watermark = false }: Props) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   // `index` is shared between the lightbox and the mobile swipe carousel
@@ -130,6 +135,7 @@ export function Gallery({ images, comingSoon = false }: Props) {
             </span>
           )}
           {comingSoon && <ComingSoonOverlay size="gallery" />}
+          {watermark && <NextwinWatermark size="gallery" />}
         </div>
       </div>
 
@@ -148,6 +154,7 @@ export function Gallery({ images, comingSoon = false }: Props) {
             className="object-cover transition hover:scale-[1.02]"
           />
           {comingSoon && <ComingSoonOverlay size="gallery" />}
+          {watermark && <NextwinWatermark size="gallery" />}
         </button>
         {secondaryTiles.map((img, i) => (
           <button

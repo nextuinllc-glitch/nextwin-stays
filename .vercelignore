@@ -1,0 +1,22 @@
+# Local-only assets that shouldn't ship to Vercel.
+# Production media lives on Cloudflare R2 — these folders are scratch
+# space for editing and pre-upload staging.
+catalog-photos/
+brand-assets/
+certificates/
+.dev-certs/
+.deploy/
+
+# Build artefacts from previous local builds
+out/
+.next/cache/
+
+# Local dev databases / Prisma scratch
+prisma/dev.db
+prisma/dev.db-*
+
+# Editor / OS junk
+.DS_Store
+*.log
+.vscode/
+.idea/

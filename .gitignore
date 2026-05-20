@@ -52,3 +52,4 @@ next-env.d.ts.bak
 
 # Local env (Prisma CLI + secrets) — do not commit
 .env
+.vercel
