@@ -57,6 +57,19 @@ const supabaseHost = (() => {
   }
 })();
 
+// Auto-derived from R2_PUBLIC_URL — property photos + hero videos
+// live at this Cloudflare R2 host. Without whitelisting it, next/image
+// refuses to render the assets and the catalogue cards look blank.
+const r2Host = (() => {
+  const url = process.env.R2_PUBLIC_URL;
+  if (!url) return null;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+})();
+
 const nextConfig = {
   reactStrictMode: true,
   // `ffmpeg-static` ships a native binary that Next.js otherwise tries to
@@ -84,6 +97,13 @@ const nextConfig = {
         ...(supabaseHost
           ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
           : []),
+        ...(r2Host ? [{ protocol: "https", hostname: r2Host }] : []),
+        // R2 buckets without a configured custom subdomain serve from
+        // pub-<hash>.r2.dev. Whitelist that whole pattern so existing
+        // image URLs in the DB keep working even if R2_PUBLIC_URL gets
+        // remapped to a vanity domain later.
+        { protocol: "https", hostname: "*.r2.dev" },
+        { protocol: "https", hostname: "*.r2.cloudflarestorage.com" },
       ],
     },
   }),
@@ -99,6 +119,13 @@ const nextConfig = {
         ...(supabaseHost
           ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
           : []),
+        ...(r2Host ? [{ protocol: "https", hostname: r2Host }] : []),
+        // R2 buckets without a configured custom subdomain serve from
+        // pub-<hash>.r2.dev. Whitelist that whole pattern so existing
+        // image URLs in the DB keep working even if R2_PUBLIC_URL gets
+        // remapped to a vanity domain later.
+        { protocol: "https", hostname: "*.r2.dev" },
+        { protocol: "https", hostname: "*.r2.cloudflarestorage.com" },
       ],
       formats: ["image/avif", "image/webp"],
     },
