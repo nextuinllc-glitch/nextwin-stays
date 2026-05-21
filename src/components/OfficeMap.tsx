@@ -152,26 +152,20 @@ export function OfficeMap() {
             </Link>
           </div>
 
-          {/* Map - the whole tile is clickable and opens Google Maps
-              with driving directions to the office. We layer a
-              transparent <a> on top of the Leaflet container; the
-              anchor catches clicks even on the inactive (non-zoom)
-              parts of the map. A "Voir sur Google Maps" pill in the
-              corner makes the affordance discoverable on first sight. */}
+          {/* Map - real Google Maps embed iframe (see OfficeMapInner).
+              The iframe is fully interactive: visitors can pan, zoom,
+              tap businesses around our pin, etc. We layer a corner
+              "Itinéraire" pill on top via z-[10] so a single tap on
+              the pill opens directions in a new tab. We don't put a
+              full-area click overlay anymore because that would block
+              the iframe's own pointer events. */}
           <div className="relative overflow-hidden rounded-2xl border border-gray-100 shadow-card">
             <OfficeMapInner lat={OFFICE_LAT} lng={OFFICE_LNG} />
             <a
               href={MAPS_DIRECTIONS_URL}
               target="_blank"
               rel="noreferrer noopener"
-              aria-label="Itinéraire vers notre bureau"
-              className="absolute inset-0 z-[500]"
-            />
-            <a
-              href={MAPS_DIRECTIONS_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="group absolute bottom-3 right-3 z-[600] inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink shadow-md backdrop-blur transition hover:bg-brand-600 hover:text-white"
+              className="group absolute bottom-3 right-3 z-10 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink shadow-md backdrop-blur transition hover:bg-brand-600 hover:text-white"
             >
               Itinéraire
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />

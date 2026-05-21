@@ -6,86 +6,105 @@ import { ArrowRight } from "lucide-react";
 import { useI18n } from "@/i18n/I18nProvider";
 
 /**
- * Dark editorial band that pivots the home page from buyer/renter
- * messaging to owners. Two-column layout on desktop (text + bespoke
- * villa-and-key illustration), single column stacked on mobile. The
- * illustration carries a subtle hover animation - the key lifts and
- * rotates on parent hover, signalling "we hand you the keys to a
- * managed property".
+ * Owner pivot band - full-bleed luxe interior photo as the background,
+ * with the text + CTA layered on top behind a dark-to-transparent
+ * left-to-right scrim so the message stays readable while the photo
+ * still breathes. Mirrors the editorial codes of high-end real-estate
+ * sites (Sotheby's, Christie's): single immersive image, restrained
+ * type, one clear CTA. A slow Ken-Burns zoom + brand-pink halo fire
+ * on hover so the section reads as alive, not static.
  */
 export function OwnerCallout() {
   const { t } = useI18n();
   return (
-    <section aria-label={t.ownerCallout.eyebrow} className="group bg-ink">
-      <div className="container-page py-16 sm:py-24">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-          {/* Text column - centred on mobile, left-aligned on desktop
-              so the illustration on the right reads as the editorial
-              counter-weight. */}
-          <div className="text-center lg:text-left">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-brand-400">
-              {t.ownerCallout.eyebrow}
-            </span>
-            <h2 className="mt-5 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl [text-wrap:balance]">
-              {t.ownerCallout.title}
-            </h2>
-            <span
-              aria-hidden
-              className="mt-5 block h-px w-12 bg-brand-500/60 mx-auto lg:mx-0"
-            />
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base lg:mx-0 mx-auto">
-              {t.ownerCallout.body}
-            </p>
-            <div className="mt-8 flex justify-center sm:mt-10 lg:justify-start">
-              <Link
-                href="/gestion"
-                className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-ink transition hover:bg-brand-600 hover:text-white hover:ring-2 hover:ring-white/40"
-              >
-                {t.ownerCallout.cta}
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-          </div>
+    <section
+      aria-label={t.ownerCallout.eyebrow}
+      className="owner-band group relative overflow-hidden bg-ink"
+    >
+      {/* Full-bleed background photo. Sits at z-0 behind every overlay
+          and the content. Slow Ken-Burns zoom on parent hover. */}
+      <Image
+        src="/owner-bg.jpg"
+        alt={t.ownerCallout.title}
+        fill
+        sizes="100vw"
+        priority={false}
+        className="owner-band-img object-cover"
+      />
 
-          {/* Illustration column - bespoke villa + key SVG. Wrapped in
-              a Link so the whole illustration is a click target into
-              /gestion (mirrors how the cards on the catalogue work).
-              On hover the section group adds a class that the inline
-              <style> below targets to lift + rotate the key. */}
-          <Link
-            href="/gestion"
-            aria-label={t.ownerCallout.cta}
-            className="relative mx-auto block w-full max-w-md lg:max-w-none"
-          >
-            <Image
-              src="/owner-illustration.svg"
-              alt=""
-              width={600}
-              height={600}
-              priority={false}
-              className="owner-illo h-auto w-full select-none"
-            />
-          </Link>
+      {/* Dark left-to-right scrim - keeps the text column legible while
+          letting the photo breathe on the right. Mobile uses a bottom-
+          to-top variant so the centred text on a small screen still
+          reads clearly. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-ink/95 via-ink/70 to-ink/30 lg:bg-gradient-to-r lg:from-ink/95 lg:via-ink/70 lg:to-ink/10"
+      />
+
+      {/* Brand-pink wash - barely visible at rest, intensifies on hover
+          to signal the section is interactive. */}
+      <div
+        aria-hidden
+        className="owner-band-tint pointer-events-none absolute inset-0 z-10 bg-gradient-to-tr from-brand-700/15 via-transparent to-transparent"
+      />
+
+      {/* Content - text + CTA. lg:max-w-xl + mr-auto pins it to the
+          left half on desktop, leaving the right side of the photo
+          visible. Centred on mobile. */}
+      <div className="container-page relative z-20 py-20 sm:py-28 lg:py-36">
+        <div className="mx-auto max-w-2xl text-center lg:mx-0 lg:max-w-xl lg:text-left">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-brand-400">
+            {t.ownerCallout.eyebrow}
+          </span>
+          <h2 className="mt-5 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl [text-wrap:balance]">
+            {t.ownerCallout.title}
+          </h2>
+          <span
+            aria-hidden
+            className="mt-5 block h-px w-12 bg-brand-500/70 mx-auto lg:mx-0"
+          />
+          <p className="mt-5 text-sm leading-relaxed text-white/85 sm:text-base lg:max-w-lg">
+            {t.ownerCallout.body}
+          </p>
+          <div className="mt-8 flex justify-center sm:mt-10 lg:justify-start">
+            <Link
+              href="/gestion"
+              className="group/cta inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-ink shadow-lg transition hover:bg-brand-600 hover:text-white hover:ring-2 hover:ring-white/40"
+            >
+              {t.ownerCallout.cta}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/cta:translate-x-1" />
+            </Link>
+          </div>
         </div>
       </div>
 
+      {/* Editorial wordmark anchor in the bottom-right corner - keeps
+          the right half of the photo (visible on desktop) feeling
+          branded, not anonymous. Locale-aware via t.gestion.heroEyebrow. */}
+      <div className="pointer-events-none absolute bottom-4 right-4 z-20 hidden text-right lg:block">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.4em] text-white/55">
+          Nextwin · {t.gestion.heroEyebrow}
+        </span>
+      </div>
+
       {/*
-        Hover interaction on the illustration. We can't put inline
-        CSS animations on parts of an <img> SVG (the browser flattens
-        it), so the SVG is shipped as a static <Image> and the
-        animation is achieved by applying a subtle composite transform
-        to the whole image on hover. Slow ease, never noisy.
+        Slow Ken-Burns zoom on the background photo + brand-pink wash
+        intensifies on parent hover. No JS - pure CSS transitions on
+        the section's .group state.
       */}
       <style jsx>{`
-        .owner-illo {
-          transform-origin: 50% 60%;
-          transition: transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1),
-                      filter 700ms ease-out;
-          filter: drop-shadow(0 14px 30px rgba(224, 11, 65, 0.18));
+        .owner-band-img {
+          transition: transform 2500ms cubic-bezier(0.22, 0.61, 0.36, 1);
         }
-        .group:hover .owner-illo {
-          transform: scale(1.03) rotate(-1.5deg);
-          filter: drop-shadow(0 22px 44px rgba(224, 11, 65, 0.32));
+        .owner-band-tint {
+          transition: opacity 700ms ease-out;
+          opacity: 0.75;
+        }
+        .group:hover .owner-band-img {
+          transform: scale(1.04);
+        }
+        .group:hover .owner-band-tint {
+          opacity: 1;
         }
       `}</style>
     </section>

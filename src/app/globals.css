@@ -74,6 +74,71 @@
   scrollbar-width: none;
 }
 
+/* HomePortal lane - fills the mobile viewport so the visitor sees one
+   category at a time. Uses 100vh as the safe fallback for older
+   WebKit and overrides with 100dvh (dynamic viewport height) where
+   supported - dvh accounts for the mobile browser's chrome (URL bar
+   showing / hiding) so the lane snaps exactly to what's visible. The
+   md:!min-h-0 override on the JSX side cancels this on desktop. */
+.portal-lane-full {
+  min-height: 100vh;
+}
+@supports (min-height: 100dvh) {
+  .portal-lane-full {
+    min-height: 100dvh;
+  }
+}
+
+/* Luxe CTA - the pill that lives at the bottom of each HomePortal
+   lane (and any other place that wants the same dynamic feel). Three
+   layered effects on parent .group:hover:
+     1. Lift + scale - translate-y(-3px) scale(1.03) with cubic-bezier
+        smoothing, so the button visibly "rises" off the column.
+     2. Brand-tinted halo - a softer outer ring + matching glow shadow
+        radiate from the pill, signalling tactile depth.
+     3. Diagonal shine sweep - a brief white-gradient pseudo-element
+        slides left-to-right across the pill once on hover, 700 ms
+        ease-out, then resets when the cursor leaves. The 200% offset
+        keeps the shine off-screen at rest.
+   On mobile the lane's `active` state is driven by IntersectionObserver
+   (same parent .group); since touch doesn't fire :hover, we mirror
+   the lift via a tiny in-view animation as the lane reaches the
+   centre of the viewport - quiet but enough to read as alive. */
+.luxe-cta {
+  position: relative;
+  overflow: hidden;
+  transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1),
+              box-shadow 500ms ease-out,
+              background-color 300ms ease,
+              color 300ms ease;
+  will-change: transform;
+}
+.luxe-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  transition: transform 700ms ease-out;
+  pointer-events: none;
+}
+.group:hover .luxe-cta {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow:
+    0 12px 28px -8px rgba(0, 0, 0, 0.25),
+    0 0 0 4px rgba(255, 255, 255, 0.22);
+}
+.group:hover .luxe-cta::before {
+  transform: translateX(110%);
+}
+
 /* Leaflet safety net — pin the map and its tiles strictly inside their
    container. Leaflet's default z-index for the container is 400, which
    can stack over sticky bars / sheets / modals if our wrapper isn't

@@ -108,9 +108,12 @@ export function HomePortal() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // matchMedia("(hover: none)") = true on touch devices. We only
-    // auto-fill there; desktop keeps the hover affordance so the section
-    // stays calm until the user actually points at a column.
+    // Auto-fill on scroll only on touch devices (no-hover). Desktop
+    // shows all 3 lanes side-by-side in the same 100dvh section, so
+    // there's no "scroll between lanes" to trigger off - the hover
+    // interaction is the right affordance there. On mobile each lane
+    // takes its own 100dvh, so the lane crossing the viewport centre
+    // becomes the active one and floods with its accent colour.
     const noHover = window.matchMedia("(hover: none)").matches;
     if (!noHover) return;
 
@@ -176,6 +179,13 @@ export function HomePortal() {
       aria-label={t.portal.ariaLabel}
       className="border-y border-gray-100 bg-cream-50"
     >
+      {/* Mobile: single column - each lane stacks vertically and fills
+          the viewport (one category per scroll, full focus).
+          Desktop (md+): 3 columns side-by-side, each STILL taking the
+          full viewport height (100dvh). The whole portal section then
+          measures 100dvh on desktop with three equal-width lanes, so
+          the visitor sees the entire offering in one screen, each
+          lane reading as its own immersive panel. */}
       <div className="grid grid-cols-1 divide-y divide-gray-100 md:grid-cols-3 md:divide-x md:divide-y-0">
         {lanes.map((lane, idx) => (
           <LaneCard
@@ -207,10 +217,17 @@ function LaneCard({
   const filled = active;
 
   return (
+    // Every breakpoint: lane fills the viewport (`portal-lane-full`
+    // defined in globals.css uses 100dvh where supported, with a
+    // 100vh fallback so older WebKit still works) and centres its
+    // content vertically. Desktop now also stacks the lanes vertically
+    // - the visitor sees exactly ONE category at a time, scrolls to
+    // the next, never sees two overlapping. The padding scales up on
+    // larger screens for breathing room around the centred content.
     <Link
       data-lane-index={index}
       href={lane.href}
-      className={`group relative flex flex-col items-center px-6 py-16 text-center transition-colors duration-500 ease-out sm:px-8 sm:py-20 lg:py-28 ${
+      className={`group portal-lane-full relative flex flex-col items-center justify-center px-6 py-16 text-center transition-colors duration-500 ease-out sm:px-8 sm:py-20 lg:py-28 ${
         filled ? `${a.filledBg} text-white` : `hover:text-white ${a.hoverBg}`
       }`}
     >
@@ -259,17 +276,20 @@ function LaneCard({
       </p>
 
       {/* CTA pill - kind-tinted at rest, inverts to white-on-accent
-          once the column is filled so the click target reads strongly
-          against the flooded background. */}
+          once the column is filled. `luxe-cta` (in globals.css) layers
+          three hover effects on the parent .group: lift + scale, a
+          brand-tinted halo, and a diagonal shine sweep that runs once
+          across the pill. The arrow gets a bigger nudge (translate-x-2)
+          to match the rest of the motion. */}
       <span
-        className={`mt-10 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] shadow-sm transition ${
+        className={`luxe-cta mt-10 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] shadow-sm ${
           filled
             ? `bg-white ${a.ctaFilledText}`
             : `${a.ctaRestBg} text-white group-hover:bg-white ${a.ctaHoverText}`
         }`}
       >
-        {lane.cta}
-        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+        <span className="relative z-10">{lane.cta}</span>
+        <ArrowRight className="relative z-10 h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-x-2" />
       </span>
     </Link>
   );

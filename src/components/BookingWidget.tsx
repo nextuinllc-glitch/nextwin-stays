@@ -225,14 +225,21 @@ export function BookingWidget({
               </span>
               <span className="text-ink">{formatPrice(subtotal)}</span>
             </div>
-            <div className="flex items-center justify-between text-ink-muted">
-              <span>{t.booking.cleaningFee}</span>
-              <span className="text-ink">{formatPrice(CLEANING_FEE)}</span>
-            </div>
-            <div className="flex items-center justify-between text-ink-muted">
-              <span>{t.booking.serviceFee}</span>
-              <span className="text-ink">{formatPrice(serviceFee)}</span>
-            </div>
+            {/* Cleaning + service fees come from admin Settings. Hide
+                the rows when set to 0 so the breakdown reads cleanly
+                as subtotal -> total. */}
+            {CLEANING_FEE > 0 && (
+              <div className="flex items-center justify-between text-ink-muted">
+                <span>{t.booking.cleaningFee}</span>
+                <span className="text-ink">{formatPrice(CLEANING_FEE)}</span>
+              </div>
+            )}
+            {serviceFee > 0 && (
+              <div className="flex items-center justify-between text-ink-muted">
+                <span>{t.booking.serviceFee}</span>
+                <span className="text-ink">{formatPrice(serviceFee)}</span>
+              </div>
+            )}
             <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-base font-semibold text-ink">
               <span>{t.booking.total}</span>
               <span>{formatPrice(total)}</span>
@@ -319,6 +326,9 @@ export function BookingWidget({
         pricePerNight={property.pricePerNight}
         currency={(property.currency ?? "EUR") as "EUR" | "USD"}
         minNights={property.minNights ?? 1}
+        // Chain to the guests selector right after the user applies
+        // a valid date range - one less click on both desktop + mobile.
+        onApplied={() => setOpenGuests(true)}
       />
 
       {/* Guests panel — desktop-only quick selector reachable from the

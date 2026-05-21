@@ -21,10 +21,11 @@ import {
 import { cn, formatPrice, nightsBetween } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nProvider";
 
-// Mirror BookingWidget — keeping these inline so the mobile summary uses
-// the exact same numbers as the sidebar widget without a shared module.
-const SERVICE_FEE_RATE = 0.07;
-const CLEANING_FEE = 45;
+// Fee values used to be hardcoded constants here, which silently
+// overrode whatever the admin had configured in Settings. We now thread
+// the `fees` prop (already loaded server-side from getFeeSettings) all
+// the way through to the inline mobile summary so a single admin edit
+// flows to BookingWidget AND the summary block in one shot.
 
 function parseISO(s: string | null) {
   if (!s) return null;
@@ -130,8 +131,11 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
   const to = parseISO(params.get("to"));
   const nights = nightsBetween(from, to);
   const subtotal = property.pricePerNight * Math.max(nights, 0);
-  const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
-  const total = nights ? subtotal + CLEANING_FEE + serviceFee : 0;
+  // Fees come from the admin-managed Settings row, NOT hardcoded
+  // constants. Service fee is a rate (0..1) applied to the subtotal;
+  // cleaning fee is a flat per-stay charge.
+  const serviceFee = Math.round(subtotal * fees.serviceFeeRate);
+  const total = nights ? subtotal + fees.cleaningFee + serviceFee : 0;
 
   const nightLabel = (n: number) => (n === 1 ? t.booking.nightSingular : t.booking.nightPlural);
 
@@ -308,14 +312,21 @@ export function PropertyDetailContent({ property, blockedRanges, fees, whatsappN
                     </span>
                     <span className="text-ink">{formatPrice(subtotal)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-ink-muted">
-                    <span>{t.booking.cleaningFee}</span>
-                    <span className="text-ink">{formatPrice(CLEANING_FEE)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-ink-muted">
-                    <span>{t.booking.serviceFee}</span>
-                    <span className="text-ink">{formatPrice(serviceFee)}</span>
-                  </div>
+                  {/* Cleaning + service fees are admin-configurable. When
+                      both are zero, suppress the rows so the summary
+                      just shows subtotal -> total, no padding noise. */}
+                  {fees.cleaningFee > 0 && (
+                    <div className="flex items-center justify-between text-ink-muted">
+                      <span>{t.booking.cleaningFee}</span>
+                      <span className="text-ink">{formatPrice(fees.cleaningFee)}</span>
+                    </div>
+                  )}
+                  {serviceFee > 0 && (
+                    <div className="flex items-center justify-between text-ink-muted">
+                      <span>{t.booking.serviceFee}</span>
+                      <span className="text-ink">{formatPrice(serviceFee)}</span>
+                    </div>
+                  )}
                   <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-2.5 text-base font-semibold text-ink">
                     <span>{t.booking.total}</span>
                     <span>{formatPrice(total)}</span>

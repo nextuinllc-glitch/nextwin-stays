@@ -1,82 +1,42 @@
 "use client";
 
-import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
 type Props = {
   lat: number;
   lng: number;
 };
 
-// Locked zoom — 15 puts the office pin in the middle with a clear sense
-// of neighbourhood, same convention used by PropertyMapZone.
-const ZOOM = 15;
-
-// Brand-pink pin marker. Renders the lucide map-pin glyph in a circle
-// styled in our brand colour, big enough to read on mobile.
-function officeIcon() {
-  const html = `
-    <div style="
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #E00B41;
-      box-shadow: 0 8px 20px rgba(224,11,65,0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      border: 3px solid white;
-    ">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2.4"
-           stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 10c0 7-8 13-8 13s-8-6-8-13a8 8 0 1 1 16 0Z"/>
-        <circle cx="12" cy="10" r="3"/>
-      </svg>
-    </div>
-  `;
-  return L.divIcon({
-    html,
-    className: "",
-    iconSize: [40, 40],
-    iconAnchor: [20, 38],
-  });
-}
-
-// Same `invalidateSize` dance as PropertyMapZone — Leaflet otherwise
-// caches the wrong tile grid when the container hydrates after layout.
-function MapBootstrap({ lat, lng }: { lat: number; lng: number }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView([lat, lng], ZOOM, { animate: false });
-    const t1 = setTimeout(() => map.invalidateSize(), 80);
-    const t2 = setTimeout(() => map.invalidateSize(), 400);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [lat, lng, map]);
-  return null;
-}
-
+/**
+ * Office map - real Google Maps embed iframe instead of the previous
+ * Leaflet + OpenStreetMap tiles. Why the swap:
+ *   - Google Maps shows the surrounding business names, road labels,
+ *     Sanaoubar / Sidi Ghanem area markers, and traffic context that
+ *     visitors actually use to orient themselves
+ *   - No API key needed for the basic `maps.google.com/maps?...&output=embed`
+ *     URL - works on Vercel without per-request signing
+ *   - Native Google look & feel; visitors recognise the chrome
+ *
+ * Interactive: visitors can pan, zoom, click the pin to see Burj Malak
+ * details on Google's own card. The wrapper component (OfficeMap)
+ * still layers an "Itinéraire" pill in the corner so a single tap on
+ * the pill opens Google Maps directions in a new tab.
+ */
 export default function OfficeMapInner({ lat, lng }: Props) {
+  // Classic Google Maps embed URL. `q=<lat>,<lng>` drops the pin at the
+  // exact office location; `z=16` is the right zoom to see the
+  // immediate neighbourhood (a couple of blocks each side); `hl=fr`
+  // forces French labels to match the rest of the site.
+  const embedSrc = `https://maps.google.com/maps?q=${lat},${lng}&hl=fr&z=16&output=embed`;
   return (
-    <MapContainer
-      center={[lat, lng]}
-      zoom={ZOOM}
-      scrollWheelZoom={false}
-      className="h-72 w-full rounded-2xl sm:h-96"
-      style={{ background: "#F8F4EC" }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker position={[lat, lng]} icon={officeIcon()} />
-      <MapBootstrap lat={lat} lng={lng} />
-    </MapContainer>
+    <iframe
+      src={embedSrc}
+      title="Carte Google Maps de notre bureau à Marrakech"
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+      // Leaflet's previous CSS reserved h-72 / sm:h-96. We keep the
+      // same heights so the rest of the OfficeMap section (skeleton,
+      // overlay pill, secondary link) lines up identically.
+      className="h-72 w-full border-0 sm:h-96"
+      allowFullScreen
+    />
   );
 }

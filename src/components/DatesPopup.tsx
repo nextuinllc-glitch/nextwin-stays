@@ -33,6 +33,10 @@ type Props = {
   // villa = 3). Default 1 keeps the popup safe when used in contexts
   // that don't pass it.
   minNights?: number;
+  // Fired after the user clicks "Appliquer" with a valid range. Used
+  // by BookingWidget to chain straight into the guests selector so
+  // the visitor never has to hunt for the next field. Optional.
+  onApplied?: () => void;
 };
 
 const DATE_LOCALE: Record<Locale, string> = {
@@ -88,6 +92,7 @@ export function DatesPopup({
   currency,
   monthsAhead = 11,
   minNights = 1,
+  onApplied,
 }: Props) {
   const { t, locale } = useI18n();
   const router = useRouter();
@@ -243,7 +248,15 @@ export function DatesPopup({
     if (pickedTo) next.set("to", isoDay(pickedTo));
     else next.delete("to");
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    const hadValidRange = Boolean(pickedFrom && pickedTo);
     onClose();
+    // Hand off to the next step (guests selector) only when the user
+    // actually picked a complete range. Wrapped in a microtask so the
+    // close animation runs before the next popup mounts, otherwise the
+    // body-scroll-lock from the first dialog races the second.
+    if (hadValidRange && onApplied) {
+      setTimeout(() => onApplied(), 0);
+    }
   };
 
   if (!open) return null;
@@ -266,15 +279,16 @@ export function DatesPopup({
       aria-modal="true"
       aria-label={t.search.selectDatesTitle}
       // Mobile: full-screen sheet (touch-friendly, vertical scroll for
-      // a year of months). Desktop: centred floating dialog (~880 px
-      // wide, max-h-90vh) that sits above a dimmed backdrop, matching
-      // the booking widget's design rather than dominating the page.
+      // a year of months). Desktop: a compact ~520px wide centred
+      // floating dialog - smaller than before so the page underneath
+      // stays partly visible and the picker reads as a transient
+      // overlay, not a full-page takeover.
       className={cn(
         "fixed z-50 flex flex-col bg-white",
         // mobile: full-bleed
         "inset-0",
-        // desktop: anchored centre, capped size, rounded, shadowed
-        "lg:inset-auto lg:left-1/2 lg:top-[8vh] lg:-translate-x-1/2 lg:h-[84vh] lg:w-[min(880px,calc(100vw-48px))] lg:rounded-3xl lg:shadow-2xl lg:ring-1 lg:ring-black/5",
+        // desktop: anchored centre, narrower size, rounded, shadowed
+        "lg:inset-auto lg:left-1/2 lg:top-[10vh] lg:-translate-x-1/2 lg:h-[78vh] lg:max-h-[680px] lg:w-[520px] lg:max-w-[calc(100vw-48px)] lg:rounded-3xl lg:shadow-2xl lg:ring-1 lg:ring-black/5",
       )}
     >
       {/* Header */}

@@ -376,8 +376,14 @@ export function CheckoutForm({
                 label={`${formatPrice(property.pricePerNight)} × ${nights} ${nights === 1 ? "nuit" : "nuits"}`}
                 value={formatPrice(subtotal)}
               />
-              <Row label="Frais de ménage" value={formatPrice(CLEANING_FEE)} />
-              <Row label="Frais de service" value={formatPrice(serviceFee)} />
+              {/* Hide fee rows when admin set them to 0 - cleaner
+                  breakdown that just shows subtotal -> total. */}
+              {CLEANING_FEE > 0 && (
+                <Row label="Frais de ménage" value={formatPrice(CLEANING_FEE)} />
+              )}
+              {serviceFee > 0 && (
+                <Row label="Frais de service" value={formatPrice(serviceFee)} />
+              )}
               <div className="!mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-base font-semibold text-ink">
                 <span>Total</span>
                 <span>{formatPrice(total)}</span>
